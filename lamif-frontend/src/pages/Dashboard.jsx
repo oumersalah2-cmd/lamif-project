@@ -79,14 +79,13 @@ function Dashboard() {
             {bookings.length === 0 ? <p>{t('dashboard.noBookings')}</p> : (
               <div style={{ display: 'grid', gap: '10px' }}>
                 {bookings.map(b => (
-                  <div key={b._id} style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '8px', background: '#f9f9f9' }}>
+                  <div key={b._id} className="booking-card">
                     <p><strong>Tutor:</strong> {b.tutor?.user?.name || 'Unknown'}</p>
                     <p><strong>Subject:</strong> {b.subject}</p>
                     <p><strong>Message:</strong> {b.message}</p>
-                    <p><strong>Status:</strong> <span style={{ 
-                        color: b.status === 'accepted' ? 'green' : b.status === 'rejected' ? 'red' : 'orange', 
-                        fontWeight: 'bold', textTransform: 'capitalize' 
-                    }}>{t(`dashboard.status.${b.status}`)}</span></p>
+                    <p><strong>Status:</strong> <span className={`status-badge status-${b.status}`}>
+                        {t(`dashboard.status.${b.status}`)}
+                    </span></p>
                   </div>
                 ))}
               </div>
@@ -108,20 +107,19 @@ function Dashboard() {
             {bookings.length === 0 ? <p>{t('dashboard.noRequests')}</p> : (
               <div style={{ display: 'grid', gap: '10px' }}>
                 {bookings.map(b => (
-                  <div key={b._id} style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '8px', background: '#fff' }}>
+                  <div key={b._id} className="booking-card">
                     <p><strong>Student:</strong> {b.student?.name}</p>
                     <p><strong>Email:</strong> {b.student?.email}</p>
                     <p><strong>Subject:</strong> {b.subject}</p>
                     <p><strong>Message:</strong> {b.message}</p>
-                    <p><strong>Status:</strong> <span style={{ 
-                        color: b.status === 'accepted' ? 'green' : b.status === 'rejected' ? 'red' : 'orange', 
-                        fontWeight: 'bold', textTransform: 'capitalize' 
-                    }}>{t(`dashboard.status.${b.status}`)}</span></p>
+                    <p><strong>Status:</strong> <span className={`status-badge status-${b.status}`}>
+                        {t(`dashboard.status.${b.status}`)}
+                    </span></p>
                     
                     {b.status === 'pending' && (
-                        <div style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
-                            <button onClick={() => handleUpdateStatus(b._id, 'accepted')} style={{ background: 'green', color: 'white', padding: '5px 10px' }}>Accept</button>
-                            <button onClick={() => handleUpdateStatus(b._id, 'rejected')} style={{ background: 'red', color: 'white', padding: '5px 10px' }}>Reject</button>
+                        <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+                            <button onClick={() => handleUpdateStatus(b._id, 'accepted')} style={{ background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Accept</button>
+                            <button onClick={() => handleUpdateStatus(b._id, 'rejected')} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Reject</button>
                         </div>
                     )}
                   </div>
