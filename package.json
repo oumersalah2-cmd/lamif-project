@@ -1,0 +1,25 @@
+{
+  "name": "lamif",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm start --prefix lamif-backened\" \"npm run dev --prefix lamif-frontend\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oumersalah2-cmd/lamif-project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/oumersalah2-cmd/lamif-project/issues"
+  },
+  "homepage": "https://github.com/oumersalah2-cmd/lamif-project#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

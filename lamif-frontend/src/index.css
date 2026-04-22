@@ -10,12 +10,13 @@
   --primary-color: #10b981;
   --primary-hover: #059669;
   --secondary-color: #34d399;
-  --bg-light: rgba(255, 255, 255, 0.05);
-  --text-main: #f9fafb;
-  --text-muted: #d1d5db;
-  --white: rgba(255, 255, 255, 0.1);
-  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --bg-light: rgba(6, 78, 59, 0.2);
+  --text-main: #ecfdf5;
+  --text-muted: #9ca3af;
+  --white: rgba(6, 78, 59, 0.4);
+  --input-bg: rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
   --radius-lg: 16px;
 }
 
@@ -64,31 +65,38 @@ body {
 .auth-container input,
 .auth-container select {
   padding: 12px 16px;
-  border: 1px solid #d1d5db;
+  background: var(--input-bg);
+  border: 1px solid rgba(16, 185, 129, 0.3);
   border-radius: 8px;
   font-size: 15px;
+  color: var(--text-main);
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
 }
 
-.auth-container input:focus {
+.auth-container input:focus,
+.auth-container select:focus {
   border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 
 .auth-container button {
   padding: 12px;
-  background: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
   color: var(--white);
   border: none;
   border-radius: 8px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
 }
 
 .auth-container button:hover {
-  background: var(--primary-hover);
+  background: linear-gradient(135deg, var(--primary-hover), var(--primary-color));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
 /* =================== DASHBOARD =================== */
@@ -300,4 +308,14 @@ body {
 .status-pending { background: #fef3c7; color: #92400e; }
 .status-accepted { background: #d1fae5; color: #065f46; }
 .status-rejected { background: #fee2e2; color: #991b1b; }
+
+
+.auth-container a {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+.auth-container a:hover {
+  text-decoration: underline;
+}
 

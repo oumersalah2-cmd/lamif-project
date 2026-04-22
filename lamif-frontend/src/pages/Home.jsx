@@ -17,15 +17,17 @@ function Home() {
       </nav>
 
       <div className="hero-section">
-        <h1>{t('home.title')}</h1>
-        <p>{t('home.subtitle')}</p>
-        <div className="hero-buttons">
-          <button onClick={() => navigate('/register', { state: { role: 'student' } })} className="btn-primary">
-            {t('nav.findTutor')}
-          </button>
-          <button onClick={() => navigate('/register', { state: { role: 'tutor' } })} className="btn-secondary">
-            {t('nav.becomeTutor')}
-          </button>
+        <div style={{ background: 'rgba(0,0,0,0.4)', padding: '40px', borderRadius: '24px', backdropFilter: 'blur(8px)', display: 'inline-block' }}>
+            <h1>{t('home.title')}</h1>
+            <p>{t('home.subtitle')}</p>
+            <div className="hero-buttons">
+              <button onClick={() => navigate('/register', { state: { role: 'student' } })} className="btn-primary">
+                {t('nav.findTutor')}
+              </button>
+              <button onClick={() => navigate('/register', { state: { role: 'tutor' } })} className="btn-secondary">
+                {t('nav.becomeTutor')}
+              </button>
+            </div>
         </div>
       </div>
 
