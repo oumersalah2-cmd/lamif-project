@@ -23,7 +23,7 @@ function BrowseTutors() {
     try {
       const token = localStorage.getItem('token')
       await axios.post(
-        'http://localhost:5000/api/booking/hire',
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}` + '/api/booking/hire',
         {
           tutorId: selectedTutor,
           subject: bookingForm.subject,
@@ -42,7 +42,7 @@ function BrowseTutors() {
   useEffect(() => {
     async function fetchTutors() {
       try {
-        const response = await axios.get('http://localhost:5000/api/tutor/all')
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}` + '/api/tutor/all')
         setTutors(response.data.tutors)
         setLoading(false)
       } catch (error) {
@@ -80,7 +80,7 @@ function BrowseTutors() {
             <p className="tutor-rate">{tutor.hourlyRate} Birr / hr</p>
             <p className="tutor-education">{tutor.education}</p>
             {tutor.cvUrl && (
-              <a href={`http://localhost:5000${tutor.cvUrl}`} target="_blank" rel="noreferrer" style={{display: 'block', marginBottom: '10px', color: '#007bff'}}>
+              <a href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}` + `${tutor.cvUrl}`} target="_blank" rel="noreferrer" style={{display: 'block', marginBottom: '10px', color: '#007bff'}}>
                 {t('tutors.viewCv')}
               </a>
             )}

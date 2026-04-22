@@ -26,7 +26,7 @@ function Dashboard() {
         try {
             const token = localStorage.getItem('token')
             const endpoint = role === 'student' ? '/api/booking/my-bookings' : '/api/booking/tutor-bookings'
-            const response = await axios.get(`http://localhost:5000${endpoint}`, {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}` + `${endpoint}`, {
                 headers: { Authorization: `Bearer ${token}` }
             })
             setBookings(response.data.bookings)
@@ -38,7 +38,7 @@ function Dashboard() {
     const handleUpdateStatus = async (id, status) => {
         try {
             const token = localStorage.getItem('token')
-            await axios.put(`http://localhost:5000/api/booking/status/${id}`, { status }, {
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}` + `/api/booking/status/${id}`, { status }, {
                 headers: { Authorization: `Bearer ${token}` }
             })
             // Refresh bookings

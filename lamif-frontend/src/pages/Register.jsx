@@ -24,7 +24,7 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', formData)
+      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}` + '/api/auth/register', formData)
       setMessage(response.data.message)
       setTimeout(() => {
         window.location.href = '/login'

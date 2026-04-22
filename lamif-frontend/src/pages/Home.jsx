@@ -13,7 +13,7 @@ function Home() {
   useEffect(() => {
     const fetchTutors = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/tutor/all')
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}` + '/api/tutor/all')
         if (response.data && response.data.tutors) {
           // Shuffle and take top 3
           const shuffled = response.data.tutors.sort(() => 0.5 - Math.random())
