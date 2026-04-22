@@ -110,7 +110,7 @@ body {
 
 .auth-container input:focus,
 .auth-container select:focus {
-  background: #ffffff;
+  background: var(--bg-card);
   border-color: var(--primary-color);
   box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
 }
