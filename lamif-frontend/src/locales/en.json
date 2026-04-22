@@ -1,0 +1,60 @@
+{
+  "nav": {
+    "login": "Login",
+    "findTutor": "Find a Tutor",
+    "becomeTutor": "Become a Tutor",
+    "logout": "Logout"
+  },
+  "home": {
+    "title": "Find the Perfect Tutor for Your Studies",
+    "subtitle": "Connect with qualified tutors across Ethiopia. Learn faster, achieve more.",
+    "qualifiedTitle": "🎓 Qualified Tutors",
+    "qualifiedDesc": "All tutors are verified with their CVs and qualifications",
+    "secureTitle": "💰 Secure Payments",
+    "secureDesc": "Pay safely through our platform using Telebirr and CBE",
+    "subjectTitle": "📚 Any Subject",
+    "subjectDesc": "Find tutors for Math, Science, Languages and more"
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "studentDashboard": "Student Dashboard",
+    "tutorDashboard": "Tutor Dashboard",
+    "manageProfile": "Manage your profile and students",
+    "browseText": "Browse and hire tutors for your studies",
+    "browseButton": "Browse Tutors",
+    "profileButton": "Create/Update Profile",
+    "myBookings": "My Booking Requests",
+    "incomingRequests": "Incoming Requests",
+    "noBookings": "No bookings yet.",
+    "noRequests": "No requests yet.",
+    "contactInfo": "Contact Info",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    }
+  },
+  "tutors": {
+    "title": "Browse Tutors",
+    "hireButton": "Hire Tutor",
+    "viewCv": "View CV"
+  },
+  "auth": {
+    "loginTitle": "Login",
+    "registerTitle": "Create Account",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full Name",
+    "loginButton": "Login",
+    "registerButton": "Register",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "registerHere": "Register here",
+    "loginHere": "Login here",
+    "joinAs": "Join as a client or freelancer",
+    "student": "Student",
+    "tutor": "Tutor",
+    "wantToFind": "I want to find a tutor",
+    "wantToTeach": "I want to teach"
+  }
+}

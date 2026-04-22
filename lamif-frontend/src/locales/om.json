@@ -1,0 +1,60 @@
+{
+  "nav": {
+    "login": "Seeni",
+    "findTutor": "Barsiisaa Barbaadi",
+    "becomeTutor": "Barsiisaa Ta'i",
+    "logout": "Bahi"
+  },
+  "home": {
+    "title": "Qo'annoo Keetiif Barsiisaa Sirrii Barbaadi",
+    "subtitle": "Barsiisota gahumsa qaban Itoophiyaa keessaa waliin wal qunnami. Dafii baradhu, milkaa'i.",
+    "qualifiedTitle": "🎓 Barsiisota Gahumsa Qaban",
+    "qualifiedDesc": "Barsiisonni hundi CV fi ragaa barnootaatiin mirkanaa'aniiru",
+    "secureTitle": "💰 Kaffaltii Amansiisaa",
+    "secureDesc": "Telebirr fi Baankii Daldala Itoophiyaatiin nagaan kaffali",
+    "subjectTitle": "📚 Barnoota Kamiyyuu",
+    "subjectDesc": "Herrega, Saayinsii, Afaanota fi kanneen biroof barsiisota barbaadi"
+  },
+  "dashboard": {
+    "welcome": "Baga Nagaan Dhuftan",
+    "studentDashboard": "Daashboordii Barataa",
+    "tutorDashboard": "Daashboordii Barsiisaa",
+    "manageProfile": "Pirofaayilii kee fi barattoota kee to'adhu",
+    "browseText": "Barsiisota barbaadii qacari",
+    "browseButton": "Barsiisota Barbaadi",
+    "profileButton": "Pirofaayilii Uumi/Haaromsi",
+    "myBookings": "Gaaffiiwwan Qaxaraa Kiyya",
+    "incomingRequests": "Gaaffiiwwan Dhufan",
+    "noBookings": "Ammatti gaaffiin hin jiru.",
+    "noRequests": "Ammatti gaaffiin hin jiru.",
+    "contactInfo": "Odeeffannoo Quunnamtii",
+    "status": {
+      "pending": "Eeggachaa jira",
+      "accepted": "Fudhatameera",
+      "rejected": "Kufaa ta'eera"
+    }
+  },
+  "tutors": {
+    "title": "Barsiisota Barbaadi",
+    "hireButton": "Barsiisaa Qacari",
+    "viewCv": "CV Ilaali"
+  },
+  "auth": {
+    "loginTitle": "Seeni",
+    "registerTitle": "Eenyummeessaa Uumi",
+    "email": "Iimeelii",
+    "password": "Jecha icciitii",
+    "fullName": "Maqaa Guutuu",
+    "loginButton": "Seeni",
+    "registerButton": "Galmaa'i",
+    "noAccount": "Eenyummeessaa hin qabduu?",
+    "haveAccount": "Eenyummeessaa qabduu?",
+    "registerHere": "Asitti galmaa'i",
+    "loginHere": "Asitti seeni",
+    "joinAs": "Akka barataa ykn barsiisaatti dabalamaa",
+    "student": "Barataa",
+    "tutor": "Barsiisaa",
+    "wantToFind": "Barsiisaa barbaaduun barbaada",
+    "wantToTeach": "Barsiisuun barbaada"
+  }
+}

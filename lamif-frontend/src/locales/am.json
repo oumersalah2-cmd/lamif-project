@@ -1,0 +1,60 @@
+{
+  "nav": {
+    "login": "ግባ",
+    "findTutor": "አስተማሪ ፈልግ",
+    "becomeTutor": "አስተማሪ ሁን",
+    "logout": "ውጣ"
+  },
+  "home": {
+    "title": "ለትምህርትዎ ትክክለኛውን አስተማሪ ያግኙ",
+    "subtitle": "በኢትዮጵያ ውስጥ ካሉ ብቁ አስተማሪዎች ጋር ይገናኙ። ፈጥነው ይማሩ፣ የበለጠ ይሳኩ።",
+    "qualifiedTitle": "🎓 ብቁ አስተማሪዎች",
+    "qualifiedDesc": "ሁሉም አስተማሪዎች በCV እና በትምህርት ማስረጃ የተረጋገጡ ናቸው",
+    "secureTitle": "💰 አስተማማኝ ክፍያ",
+    "secureDesc": "በቴሌብር እና በኢትዮጵያ ንግድ ባንክ ደህንነቱ በተጠበቀ ሁኔታ ይክፈሉ",
+    "subjectTitle": "📚 ማንኛውም ትምህርት",
+    "subjectDesc": "ለሂሳብ፣ ሳይንስ፣ ቋንቋዎች እና ሌሎችም አስተማሪዎችን ያግኙ"
+  },
+  "dashboard": {
+    "welcome": "እንኳን ደህና መጡ",
+    "studentDashboard": "የተማሪ ገጽ",
+    "tutorDashboard": "የአስተማሪ ገጽ",
+    "manageProfile": "መገለጫዎን እና ተማሪዎችዎን ያስተዳድሩ",
+    "browseText": "አስተማሪዎችን ይፈልጉ እና ይቅጠሩ",
+    "browseButton": "አስተማሪዎችን ፈልግ",
+    "profileButton": "መገለጫ ይፍጠሩ/ያዘምኑ",
+    "myBookings": "የእኔ የቅጥር ጥያቄዎች",
+    "incomingRequests": "የመጡ ጥያቄዎች",
+    "noBookings": "እስካሁን ምንም ጥያቄ የለም።",
+    "noRequests": "እስካሁን ምንም ጥያቄ የለም።",
+    "contactInfo": "የመገኛ መረጃ",
+    "status": {
+      "pending": "በመጠባበቅ ላይ",
+      "accepted": "ተቀባይነት አግኝቷል",
+      "rejected": "ተቀባይነት አላገኘም"
+    }
+  },
+  "tutors": {
+    "title": "አስተማሪዎችን ፈልግ",
+    "hireButton": "አስተማሪ ቅጠር",
+    "viewCv": "CV ይመልከቱ"
+  },
+  "auth": {
+    "loginTitle": "ግባ",
+    "registerTitle": "አካውንት ይፍጠሩ",
+    "email": "ኢሜይል",
+    "password": "የይለፍ ቃል",
+    "fullName": "ሙሉ ስም",
+    "loginButton": "ግባ",
+    "registerButton": "ተመዝገብ",
+    "noAccount": "አካውንት የለዎትም?",
+    "haveAccount": "አካውንት አለዎት?",
+    "registerHere": "እዚህ ይመዝገቡ",
+    "loginHere": "እዚህ ይግቡ",
+    "joinAs": "እንደ ተማሪ ወይም አስተማሪ ይቀላቀሉ",
+    "student": "ተማሪ",
+    "tutor": "አስተማሪ",
+    "wantToFind": "አስተማሪ መፈለግ እፈልጋለሁ",
+    "wantToTeach": "ማስተማር እፈልጋለሁ"
+  }
+}
