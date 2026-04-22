@@ -2,6 +2,7 @@ import { useState } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import ThemeToggle from '../components/ThemeToggle'
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -31,7 +32,8 @@ function Login() {
 
   return (
     <div className="auth-container">
-      <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
+      <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '15px', alignItems: 'center' }}>
+        <ThemeToggle />
         <LanguageSwitcher />
       </div>
       <h2>{t('auth.loginTitle')}</h2>

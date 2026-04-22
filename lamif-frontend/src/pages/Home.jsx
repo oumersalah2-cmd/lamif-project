@@ -79,7 +79,7 @@ function Home() {
                     <span key={index} className="subject-tag">{sub}</span>
                   ))}
                 </div>
-                <p className="tutor-rate">${tutor.hourlyRate} / hr</p>
+                <p className="tutor-rate">{tutor.hourlyRate} Birr / hr</p>
                 <p>{tutor.bio ? tutor.bio.substring(0, 100) + '...' : 'No bio available.'}</p>
                 <button onClick={() => navigate('/register', { state: { role: 'student' } })}>
                   Hire {tutor.user?.name.split(' ')[0]}

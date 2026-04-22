@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import ThemeToggle from '../components/ThemeToggle';
 
 function Dashboard() {
     const [user, setUser] = useState(null)
@@ -59,9 +60,10 @@ function Dashboard() {
         <div className="dashboard-container">
         <div className="dashboard-header">
         <h1>{t('dashboard.welcome')}, {user.name}!</h1>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <ThemeToggle />
             <LanguageSwitcher />
-            <button onClick={handleLogout} style={{ marginLeft: '15px' }}>{t('nav.logout')}</button>
+            <button onClick={handleLogout} className="btn-secondary" style={{ padding: '8px 16px', margin: 0 }}>{t('nav.logout')}</button>
         </div>
         </div>
 
@@ -70,7 +72,7 @@ function Dashboard() {
         <div>
           <h2>{t('dashboard.studentDashboard')}</h2>
           <p>{t('dashboard.browseText')}</p>
-          <button onClick={() => navigate('/browse-tutors')}>
+          <button className="btn-primary" onClick={() => navigate('/browse-tutors')}>
             {t('dashboard.browseButton')}
           </button>
 
@@ -81,6 +83,9 @@ function Dashboard() {
                 {bookings.map(b => (
                   <div key={b._id} className="booking-card">
                     <p><strong>Tutor:</strong> {b.tutor?.user?.name || 'Unknown'}</p>
+                    {b.status === 'accepted' && (
+                        <p><strong>Tutor Email:</strong> <a href={`mailto:${b.tutor?.user?.email}`} style={{color: 'var(--primary-color)', fontWeight: '600', textDecoration: 'none'}}>{b.tutor?.user?.email}</a></p>
+                    )}
                     <p><strong>Subject:</strong> {b.subject}</p>
                     <p><strong>Message:</strong> {b.message}</p>
                     <p><strong>Status:</strong> <span className={`status-badge status-${b.status}`}>
@@ -98,7 +103,7 @@ function Dashboard() {
         <div>
           <h2>{t('dashboard.tutorDashboard')}</h2>
           <p>{t('dashboard.manageProfile')}</p>
-          <button onClick={() => navigate('/create-profile')}>
+          <button className="btn-primary" onClick={() => navigate('/create-profile')}>
             {t('dashboard.profileButton')}
           </button>
 
@@ -118,8 +123,8 @@ function Dashboard() {
                     
                     {b.status === 'pending' && (
                         <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
-                            <button onClick={() => handleUpdateStatus(b._id, 'accepted')} style={{ background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Accept</button>
-                            <button onClick={() => handleUpdateStatus(b._id, 'rejected')} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Reject</button>
+                            <button onClick={() => handleUpdateStatus(b._id, 'accepted')} className="btn-primary" style={{ padding: '8px 24px', fontSize: '14px' }}>Accept</button>
+                            <button onClick={() => handleUpdateStatus(b._id, 'rejected')} className="btn-secondary" style={{ padding: '8px 24px', fontSize: '14px', borderColor: '#ef4444', color: '#ef4444' }}>Reject</button>
                         </div>
                     )}
                   </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import ThemeToggle from '../components/ThemeToggle'
 
 function BrowseTutors() {
   const [tutors, setTutors] = useState([])
@@ -59,7 +60,10 @@ function BrowseTutors() {
     <div className="browse-container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
         <h2>{t('tutors.title')}</h2>
-        <LanguageSwitcher />
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+          <ThemeToggle />
+          <LanguageSwitcher />
+        </div>
       </div>
       <div className="tutors-grid">
         {tutors.map((tutor) => (
@@ -73,7 +77,7 @@ function BrowseTutors() {
                 </span>
               ))}
             </div>
-            <p className="tutor-rate">{tutor.hourlyRate} ETB/hour</p>
+            <p className="tutor-rate">{tutor.hourlyRate} Birr / hr</p>
             <p className="tutor-education">{tutor.education}</p>
             {tutor.cvUrl && (
               <a href={`http://localhost:5000${tutor.cvUrl}`} target="_blank" rel="noreferrer" style={{display: 'block', marginBottom: '10px', color: '#007bff'}}>

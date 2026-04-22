@@ -3,6 +3,7 @@ import axios from 'axios'
 import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import ThemeToggle from '../components/ThemeToggle'
 
 function Register() {
   const location = useLocation()
@@ -35,7 +36,8 @@ function Register() {
 
   return (
     <div className="auth-container">
-      <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
+      <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '15px', alignItems: 'center' }}>
+        <ThemeToggle />
         <LanguageSwitcher />
       </div>
       <h2>{t('auth.registerTitle')}</h2>
@@ -62,26 +64,26 @@ function Register() {
           onChange={handleChange}
         />
         <div style={{ marginBottom: '15px' }}>
-          <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>{t('auth.joinAs')}</p>
+          <p style={{ fontWeight: 'bold', marginBottom: '10px', color: 'var(--text-main)' }}>{t('auth.joinAs')}</p>
           <div style={{ display: 'flex', gap: '15px' }}>
             <div 
               onClick={() => setFormData({...formData, role: 'student'})}
               style={{
-                flex: 1, padding: '20px', border: `2px solid ${formData.role === 'student' ? 'var(--primary-color)' : '#e0e0e0'}`, 
-                borderRadius: '12px', cursor: 'pointer', textAlign: 'center', background: formData.role === 'student' ? 'rgba(79, 70, 229, 0.05)' : 'white'
+                flex: 1, padding: '20px', border: `2px solid ${formData.role === 'student' ? 'var(--primary-color)' : 'var(--border-color)'}`, 
+                borderRadius: '12px', cursor: 'pointer', textAlign: 'center', background: formData.role === 'student' ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-main)'
               }}>
-              <h4 style={{ color: formData.role === 'student' ? 'var(--primary-color)' : '#444' }}>🎓 {t('auth.student')}</h4>
-              <p style={{ fontSize: '12px', marginTop: '5px', color: '#666' }}>{t('auth.wantToFind')}</p>
+              <h4 style={{ color: formData.role === 'student' ? 'var(--primary-color)' : 'var(--text-main)' }}>🎓 {t('auth.student')}</h4>
+              <p style={{ fontSize: '12px', marginTop: '5px', color: 'var(--text-muted)' }}>{t('auth.wantToFind')}</p>
             </div>
             
             <div 
               onClick={() => setFormData({...formData, role: 'tutor'})}
               style={{
-                flex: 1, padding: '20px', border: `2px solid ${formData.role === 'tutor' ? 'var(--primary-color)' : '#e0e0e0'}`, 
-                borderRadius: '12px', cursor: 'pointer', textAlign: 'center', background: formData.role === 'tutor' ? 'rgba(79, 70, 229, 0.05)' : 'white'
+                flex: 1, padding: '20px', border: `2px solid ${formData.role === 'tutor' ? 'var(--primary-color)' : 'var(--border-color)'}`, 
+                borderRadius: '12px', cursor: 'pointer', textAlign: 'center', background: formData.role === 'tutor' ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-main)'
               }}>
-              <h4 style={{ color: formData.role === 'tutor' ? 'var(--primary-color)' : '#444' }}>💼 {t('auth.tutor')}</h4>
-              <p style={{ fontSize: '12px', marginTop: '5px', color: '#666' }}>{t('auth.wantToTeach')}</p>
+              <h4 style={{ color: formData.role === 'tutor' ? 'var(--primary-color)' : 'var(--text-main)' }}>💼 {t('auth.tutor')}</h4>
+              <p style={{ fontSize: '12px', marginTop: '5px', color: 'var(--text-muted)' }}>{t('auth.wantToTeach')}</p>
             </div>
           </div>
         </div>
