@@ -7,23 +7,28 @@
 }
 
 :root {
-  --primary-color: #6366f1;
-  --primary-hover: #4f46e5;
-  --secondary-color: #10b981;
-  --bg-light: #f9fafb;
-  --text-main: #111827;
-  --text-muted: #6b7280;
-  --white: #ffffff;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --radius-lg: 12px;
+  --primary-color: #10b981;
+  --primary-hover: #059669;
+  --secondary-color: #34d399;
+  --bg-light: rgba(255, 255, 255, 0.05);
+  --text-main: #f9fafb;
+  --text-muted: #d1d5db;
+  --white: rgba(255, 255, 255, 0.1);
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --radius-lg: 16px;
 }
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: var(--bg-light);
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('./assets/background.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-color: #0c0a09;
   color: var(--text-main);
   line-height: 1.5;
+  min-height: 100vh;
 }
 
 /* =================== AUTH PAGES =================== */
