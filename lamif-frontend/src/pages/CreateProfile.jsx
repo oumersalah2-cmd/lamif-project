@@ -54,8 +54,9 @@ function CreateProfile() {
       )
       setMessage(response.data.message)
     } catch (error) {
-      console.log('Error:', error.response)
-      setMessage(error.response.data.message)
+      console.error('Error creating profile:', error)
+      const errorMessage = error.response?.data?.message || 'Connection to server failed. Please check if the backend is running.'
+      setMessage(errorMessage)
     }
   }
   return (

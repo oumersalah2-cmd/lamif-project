@@ -30,7 +30,9 @@ function Register() {
         window.location.href = '/login'
       }, 1500)
     } catch (error) {
-      setMessage(error.response.data.message)
+      console.error('Registration error:', error)
+      const errorMessage = error.response?.data?.message || 'Connection to server failed. Please check if the backend is running.'
+      setMessage(errorMessage)
     }
   }
 

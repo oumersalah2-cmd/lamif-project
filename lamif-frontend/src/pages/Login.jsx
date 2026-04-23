@@ -26,7 +26,9 @@ function Login() {
       setMessage('Login successful!')
       window.location.href = '/dashboard'
     } catch (error) {
-      setMessage(error.response.data.message)
+      console.error('Login error:', error)
+      const errorMessage = error.response?.data?.message || 'Connection to server failed. Please check if the backend is running.'
+      setMessage(errorMessage)
     }
   }
 
