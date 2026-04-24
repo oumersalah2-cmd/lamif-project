@@ -4,7 +4,10 @@ const Tutor = require('../models/Tutor')
 const protect = require('../middleware/authMiddleware')
 const upload = require('../middleware/upload')
 
-router.post('/profile', protect, upload.single('cv'), async (req, res) => {
+router.post('/profile', protect, upload.fields([
+  { name: 'cv', maxCount: 1 },
+  { name: 'profilePicture', maxCount: 1 }
+]), async (req, res) => {
   try {
     let { bio, subjects, hourlyRate, education } = req.body
     
@@ -24,7 +27,8 @@ router.post('/profile', protect, upload.single('cv'), async (req, res) => {
       subjects,
       hourlyRate,
       education,
-      cvUrl: req.file ? `/uploads/${req.file.filename}` : ''
+      cvUrl: req.files && req.files.cv ? `/uploads/${req.files.cv[0].filename}` : '',
+      profilePictureUrl: req.files && req.files.profilePicture ? `/uploads/${req.files.profilePicture[0].filename}` : ''
     })
 
     await tutor.save()

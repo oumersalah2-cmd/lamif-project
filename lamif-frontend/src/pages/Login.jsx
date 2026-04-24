@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import axios from 'axios'
-import { useTranslation } from 'react-i18next'
-import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeToggle from '../components/ThemeToggle'
 
 function Login() {
@@ -9,9 +7,8 @@ function Login() {
     email: '',
     password: ''
   })
-  const { t } = useTranslation()
-
   const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -19,45 +16,54 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setLoading(true)
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}` + '/api/auth/login', formData)
       localStorage.setItem('token', response.data.token)
       localStorage.setItem('user', JSON.stringify(response.data.user))
-      setMessage('Login successful!')
       window.location.href = '/dashboard'
     } catch (error) {
       console.error('Login error:', error)
-      const errorMessage = error.response?.data?.message || 'Connection to server failed. Please check if the backend is running.'
+      const errorMessage = error.response?.data?.message || 'Connection failed. Please check your internet.'
       setMessage(errorMessage)
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <div className="auth-container">
-      <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '15px', alignItems: 'center' }}>
+      <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
         <ThemeToggle />
-        <LanguageSwitcher />
       </div>
-      <h2>{t('auth.loginTitle')}</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          name="email"
-          placeholder={t('auth.email')}
-          value={formData.email}
-          onChange={handleChange}
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder={t('auth.password')}
-          value={formData.password}
-          onChange={handleChange}
-        />
-        <button type="submit">{t('auth.loginButton')}</button>
-      </form>
-      {message && <p>{message}</p>}
-      <p>{t('auth.noAccount')} <a href="/register">{t('auth.registerHere')}</a></p>
+      <div className="glass-card" style={{ padding: '3rem', width: '100%', maxWidth: '420px' }}>
+        <h2 style={{ marginBottom: '2rem', fontSize: '2.5rem' }}>Welcome Back</h2>
+        <form onSubmit={handleSubmit} style={{ background: 'transparent', padding: 0, border: 'none', boxShadow: 'none' }}>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email Address"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+          <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={loading}>
+            {loading ? 'Logging in...' : 'Sign In'}
+          </button>
+        </form>
+        {message && <p style={{ color: '#ef4444', marginTop: '1rem', textAlign: 'center' }}>{message}</p>}
+        <p style={{ marginTop: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+          Don't have an account? <a href="/register" style={{ color: 'var(--primary)', fontWeight: '600' }}>Create one</a>
+        </p>
+      </div>
     </div>
   )
 }

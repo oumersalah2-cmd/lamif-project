@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { useTranslation } from 'react-i18next'
-import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeToggle from '../components/ThemeToggle'
 
 function BrowseTutors() {
@@ -10,7 +8,6 @@ function BrowseTutors() {
   const [selectedTutor, setSelectedTutor] = useState(null)
   const [bookingForm, setBookingForm] = useState({ subject: '', message: '' })
   const [bookingMessage, setBookingMessage] = useState('')
-  const { t } = useTranslation()
 
   const handleHireClick = (tutorId) => {
     setSelectedTutor(tutorId)
@@ -50,78 +47,85 @@ function BrowseTutors() {
         setLoading(false)
       }
     }
-
     fetchTutors()
   }, [])
 
-  if (loading) return <p>Loading tutors...</p>
+  if (loading) return <div className="auth-container"><h2>Loading expert tutors...</h2></div>
 
   return (
     <div className="browse-container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <h2>{t('tutors.title')}</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '60px' }}>
+        <h2 style={{ fontSize: '3rem' }}>Find a Tutor</h2>
         <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
           <ThemeToggle />
-          <LanguageSwitcher />
+          <button onClick={() => window.location.href='/dashboard'} style={{ background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-main)', padding: '8px 16px', borderRadius: 'var(--radius-md)', fontWeight: '600', cursor: 'pointer' }}>Dashboard</button>
         </div>
       </div>
+      
       <div className="tutors-grid">
         {tutors.map((tutor) => (
-          <div className="tutor-card" key={tutor._id}>
+          <div className="tutor-card glass-card" key={tutor._id}>
+            <div className="tutor-image-container">
+              <img 
+                src={tutor.profilePictureUrl ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${tutor.profilePictureUrl}` : 'https://images.unsplash.com/photo-1544717297-fa154da09f9d?q=80&w=400&auto=format&fit=crop'} 
+                alt={tutor.user.name} 
+              />
+            </div>
             <h3>{tutor.user.name}</h3>
-            <p>{tutor.bio}</p>
-            <div className="tutor-subjects">
+            <div style={{ marginBottom: '16px' }}>
               {tutor.subjects.map((subject, index) => (
                 <span className="subject-tag" key={index}>
                   {subject}
                 </span>
               ))}
             </div>
-            <p className="tutor-rate">{tutor.hourlyRate} Birr / hr</p>
-            <p className="tutor-education">{tutor.education}</p>
-            {tutor.cvUrl && (
-              <a href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}` + `${tutor.cvUrl}`} target="_blank" rel="noreferrer" style={{display: 'block', marginBottom: '10px', color: '#007bff'}}>
-                {t('tutors.viewCv')}
-              </a>
-            )}
-            <button onClick={() => handleHireClick(tutor._id)}>{t('tutors.hireButton')}</button>
+            <p className="tutor-rate">{tutor.hourlyRate} ETB / hr</p>
+            <p style={{ minHeight: '80px' }}>{tutor.bio}</p>
+            
+            <div style={{ marginTop: 'auto' }}>
+              {tutor.cvUrl && (
+                <a 
+                  href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${tutor.cvUrl}`} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  style={{ display: 'block', marginBottom: '15px', color: 'var(--primary)', fontWeight: '600', textDecoration: 'none', fontSize: '0.9rem' }}
+                >
+                  📄 View Qualifications
+                </a>
+              )}
+              <button className="btn-primary" style={{ width: '100%', borderRadius: 'var(--radius-md)', padding: '12px' }} onClick={() => handleHireClick(tutor._id)}>
+                Hire {tutor.user.name.split(' ')[0]}
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
       {/* Hire Modal */}
       {selectedTutor && (
-        <div className="modal-overlay" style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
-          backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', 
-          justifyContent: 'center', alignItems: 'center', zIndex: 1000
-        }}>
-          <div className="modal-content" style={{
-            background: 'white', padding: '20px', borderRadius: '8px', 
-            width: '90%', maxWidth: '400px', color: '#333'
-          }}>
-            <h3>{t('tutors.hireButton')}</h3>
-            {bookingMessage && <p style={{ color: bookingMessage.includes('success') ? 'green' : 'red' }}>{bookingMessage}</p>}
-            <form onSubmit={handleBookingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="modal-overlay">
+          <div className="modal-content glass-card" style={{ maxWidth: '450px', background: 'var(--bg-dark)' }}>
+            <h3 style={{ marginBottom: '20px' }}>Send Hiring Request</h3>
+            {bookingMessage && <p style={{ color: bookingMessage.includes('success') ? 'var(--primary)' : '#ef4444', marginBottom: '15px', textAlign: 'center' }}>{bookingMessage}</p>}
+            <form onSubmit={handleBookingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
               <input 
                 type="text" 
-                placeholder="Subject (e.g. Math, Physics)" 
+                placeholder="Subject to learn..." 
                 required 
                 value={bookingForm.subject}
                 onChange={e => setBookingForm({...bookingForm, subject: e.target.value})}
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
               />
               <textarea 
-                placeholder="Message to the tutor..." 
+                placeholder="Details about your needs..." 
                 required
                 rows="4"
                 value={bookingForm.message}
                 onChange={e => setBookingForm({...bookingForm, message: e.target.value})}
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                style={{ background: 'rgba(15, 23, 42, 0.5)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', color: 'white', padding: '1rem', marginBottom: '1.5rem', fontFamily: 'inherit' }}
               />
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setSelectedTutor(null)} style={{ background: '#ccc', color: '#333' }}>Cancel</button>
-                <button type="submit" style={{ background: '#007bff', color: 'white' }}>Send Request</button>
+              <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setSelectedTutor(null)} className="btn-secondary" style={{ padding: '10px 20px', fontSize: '0.9rem' }}>Cancel</button>
+                <button type="submit" className="btn-primary" style={{ padding: '10px 20px', fontSize: '0.9rem' }}>Send Request</button>
               </div>
             </form>
           </div>

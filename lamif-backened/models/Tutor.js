@@ -26,6 +26,10 @@ const tutorSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  profilePictureUrl: {
+    type: String,
+    default: ''
+  },
   isAvailable: {
     type: Boolean,
     default: true

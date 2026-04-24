@@ -21,14 +21,14 @@ const storage = multer.diskStorage({
 
 // File filter
 const fileFilter = (req, file, cb) => {
-  const allowedFileTypes = /pdf|doc|docx/
+  const allowedFileTypes = /pdf|doc|docx|jpg|jpeg|png/
   const extname = allowedFileTypes.test(path.extname(file.originalname).toLowerCase())
   const mimetype = allowedFileTypes.test(file.mimetype)
 
   if (extname && mimetype) {
     return cb(null, true)
   } else {
-    cb(new Error('Only .pdf, .doc and .docx formats allowed!'))
+    cb(new Error('Only .pdf, .doc, .docx, .jpg, .jpeg and .png formats allowed!'))
   }
 }
 
