@@ -1,12 +1,11 @@
-# LAMIF - Multilingual Educational Platform
+# LAMIF - Full-Stack Educational Platform
 
 ![LAMIF Platform Banner](https://via.placeholder.com/1200x400.png?text=LAMIF+Educational+Platform)
 
-LAMIF is a comprehensive, full-stack educational platform built to bridge the gap between students and qualified tutors. Designed with accessibility in mind, the platform features robust multilingual support (English, Amharic, Oromic) and a seamless booking system.
+LAMIF is a comprehensive, full-stack educational platform built to bridge the gap between students and qualified tutors. The platform features a robust booking system and a professional, responsive interface.
 
 ## 🌟 Key Features
 
-- **Multilingual Support:** Dynamic language switching (English, Amharic, Oromic) using `i18next` to cater to a diverse user base.
 - **Role-Based Architecture:** Distinct dashboards and capabilities for 'Students' and 'Tutors'.
 - **Tutor Profiles & CV Uploads:** Tutors can create professional profiles, list their subjects and hourly rates, and upload their CVs securely.
 - **Booking System:** Students can seamlessly browse available tutors, view their qualifications, and book sessions.
@@ -19,7 +18,6 @@ LAMIF is a comprehensive, full-stack educational platform built to bridge the ga
 - React 19 (Vite)
 - React Router DOM
 - Axios for API communication
-- i18next & react-i18next (Internationalization)
 - Custom CSS with Theme Variables
 
 **Backend:**
