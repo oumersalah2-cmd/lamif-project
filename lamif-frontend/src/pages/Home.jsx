@@ -157,15 +157,15 @@ function Home() {
 
             {heroTutor && (
               <div className="float-card float-tutor">
-                <div className="row" style={{ flexWrap: 'nowrap', marginBottom: '10px' }}>
+                <div className="row" style={{ flexWrap: 'nowrap', marginBottom: '6px' }}>
                   <Avatar path={heroTutor.profilePictureUrl} name={heroTutor.user?.name} className="avatar-sm" />
                   <div style={{ minWidth: 0 }}>
                     <h4>{heroTutor.user?.name}</h4>
-                    <div className="muted small clamp-2" style={{ margin: 0 }}>{heroTutor.headline}</div>
+                    <div className="muted small clamp-1" style={{ margin: 0 }}>{heroTutor.headline}</div>
                   </div>
                 </div>
                 <TutorBadges tutor={heroTutor} />
-                <div className="row-between" style={{ marginTop: '10px' }}>
+                <div className="row-between" style={{ marginTop: '8px' }}>
                   <StarRating value={heroTutor.stats.averageRating} count={heroTutor.stats.reviewCount} />
                   <strong className="success-text">{formatMoney(startingRate(heroTutor))}/hr</strong>
                 </div>

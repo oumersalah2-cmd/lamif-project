@@ -729,11 +729,11 @@ body.dark-mode .text-accent { color: #34d399; }
 .avatar-stack .avatar:first-child { margin-left: 0; }
 
 /* Hero visual: real data arranged as a floating dashboard */
-.hero-visual { position: relative; min-height: 520px; }
+.hero-visual { position: relative; min-height: 540px; }
 .hero-orb {
   position: absolute;
-  inset: 8% 6% 4% 10%;
-  border-radius: 24px;
+  inset: 6% 8% 6% 8%;
+  border-radius: 26px;
   background:
     radial-gradient(circle at 70% 25%, rgba(52, 211, 153, 0.35), transparent 55%),
     linear-gradient(160deg, var(--brand-deep), var(--brand-ink));
@@ -753,22 +753,59 @@ body.dark-mode .text-accent { color: #34d399; }
 .float-card {
   position: absolute;
   z-index: 2;
-  padding: 16px 18px;
+  padding: 13px 16px;
   border-radius: var(--radius-lg);
   background: var(--bg-card);
   border: 1px solid var(--border-glass);
-  box-shadow: 0 12px 32px -12px rgba(3, 20, 13, 0.3);
+  box-shadow: 0 16px 36px -12px rgba(3, 20, 13, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
-.float-card h4 { margin: 0; font-size: 1.05rem; }
-.float-tutor { left: 0; top: 18%; width: min(330px, 78%); animation-delay: -1s; }
-.float-session { right: 0; top: 2%; width: 240px; animation-delay: -3s; }
-.float-progress { right: 0; bottom: 12%; width: 220px; animation-delay: -5s; }
-.float-review { left: 0; bottom: 0; width: min(270px, 52%); animation-delay: -2s; }
-.float-label { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 8px; }
-.float-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9px; background: var(--primary-soft); color: var(--primary); }
-.progress-bars { display: flex; align-items: flex-end; gap: 8px; height: 70px; margin-top: 10px; }
-.progress-bars span { flex: 1; border-radius: 6px 6px 3px 3px; background: linear-gradient(180deg, #34d399, #059669); opacity: 0.35; }
-.progress-bars span:last-child { opacity: 1; }
+.float-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 42px -12px rgba(3, 20, 13, 0.45);
+  z-index: 4;
+}
+.float-card h4 { margin: 0; font-size: 0.98rem; line-height: 1.25; }
+
+/* 1. Top-Right: Session Confirmed (pinned high at top right so it never intersects tutor card) */
+.float-session {
+  right: -12px;
+  top: -8px;
+  width: 215px;
+  animation-delay: -3s;
+}
+
+/* 2. Mid-Left: Tutor Card (starts below session card level so horizontal clearance is always 100% clean) */
+.float-tutor {
+  left: -20px;
+  top: 132px;
+  width: min(290px, 66%);
+  animation-delay: -1s;
+}
+
+/* 3. Lower-Right: Exam Readiness */
+.float-progress {
+  right: -12px;
+  bottom: 46px;
+  width: 195px;
+  animation-delay: -5s;
+}
+
+/* 4. Bottom-Left: Verified Student Review */
+.float-review {
+  left: -16px;
+  bottom: -10px;
+  width: min(260px, 56%);
+  animation-delay: -2s;
+}
+
+.float-label { display: flex; align-items: center; gap: 7px; font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 6px; }
+.float-icon { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 8px; background: var(--primary-soft); color: var(--primary); }
+.readiness-bars, .progress-bars { display: flex; align-items: flex-end; gap: 6px; height: 60px; margin-top: 8px; }
+.readiness-bars span, .progress-bars span { flex: 1; border-radius: 5px 5px 2px 2px; background: linear-gradient(180deg, #34d399, #059669); opacity: 0.35; }
+.readiness-bars span:last-child, .progress-bars span:last-child { opacity: 1; }
 
 /* Stats band */
 .stats-band { max-width: 1100px; margin: -48px auto 0; padding: 0 16px; position: relative; z-index: 3; }
