@@ -1,4 +1,5 @@
-import Logo, { LogoMark } from './Logo'
+import Logo from './Logo'
+import GeodesicGlobe3D from './GeodesicGlobe3D'
 import Icon from './Icon'
 import ThemeToggle from './ThemeToggle'
 
@@ -24,7 +25,9 @@ function AuthLayout({ children }) {
           </ul>
         </div>
         <p style={{ margin: 0, color: 'rgba(233, 244, 238, 0.6)', fontSize: '0.85rem' }}>© {new Date().getFullYear()} LAMIF Educational Platform</p>
-        <LogoMark size={420} className="auth-globe" />
+        <div className="auth-3d-wrap" aria-hidden="true">
+          <GeodesicGlobe3D className="auth-3d-globe" showShadow={false} speed={0.75} interactive={false} />
+        </div>
       </aside>
       <main className="auth-container">
         <div className="auth-top">
