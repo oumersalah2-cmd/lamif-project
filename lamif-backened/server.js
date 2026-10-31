@@ -1,39 +1,33 @@
-const express = require('express')
-const cors = require('cors')
 const mongoose = require('mongoose')
 require('dotenv').config()
-const path = require('path')
-
-const authRoutes = require('./routes/auth')
-const tutorRoutes = require('./routes/tutor')
-const protect = require('./middleware/authMiddleware')
-const bookingRoutes = require('./routes/booking')
-
-const app = express()   // ✅ MUST come before using app
-
-app.use(cors())
-app.use(express.json())
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
-
-app.get('/', (req, res) => {
-  res.send('LAMIF API is running')
-})
-
-app.use('/api/auth', authRoutes)
-app.use('/api/tutor', tutorRoutes)
-app.use('/api/booking', bookingRoutes)  // ✅ moved here
-
-app.get('/api/protected', protect, (req, res) => {
-  res.json({ message: 'you are authorized!', user: req.user })
-})
+const app = require('./app')
 
 const PORT = process.env.PORT || 5000
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
+async function connectDatabase() {
+  if (process.env.MONGO_URI) {
+    await mongoose.connect(process.env.MONGO_URI)
     console.log('Connected to MongoDB!')
+    return
+  }
+
+  // No MONGO_URI: local development against a throwaway in-memory database with demo data
+  const { MongoMemoryServer } = require('mongodb-memory-server')
+  // First start on a cold machine can take a while
+  const memoryServer = await MongoMemoryServer.create({ instance: { launchTimeout: 60000 } })
+  await mongoose.connect(memoryServer.getUri())
+  process.env.JWT_SECRET = process.env.JWT_SECRET || 'lamif-dev-secret'
+  console.log('Connected to in-memory MongoDB (data resets on restart)')
+  await require('./seed')()
+}
+
+connectDatabase()
+  .then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
     })
   })
-  .catch((err) => console.log('MongoDB error:', err))
+  .catch((err) => {
+    console.log('MongoDB error:', err)
+    process.exit(1)
+  })

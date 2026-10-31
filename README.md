@@ -6,11 +6,36 @@ LAMIF is a comprehensive, full-stack educational platform built to bridge the ga
 
 ## 🌟 Key Features
 
-- **Role-Based Architecture:** Distinct dashboards and capabilities for 'Students' and 'Tutors'.
-- **Tutor Profiles & CV Uploads:** Tutors can create professional profiles, list their subjects and hourly rates, and upload their CVs securely.
-- **Booking System:** Students can seamlessly browse available tutors, view their qualifications, and book sessions.
-- **Modern UI/UX:** A fully responsive, accessible design with glassmorphism elements, CSS micro-animations, and a built-in Dark/Light mode toggle.
-- **Secure Authentication:** Robust user registration and login system protected by JWT (JSON Web Tokens) and bcrypt password hashing.
+LAMIF works like a freelance marketplace, built for tutoring.
+
+**For students**
+- **Search & filters:** find tutors by subject, keyword, online/in-person, hourly rate, rating, verification and "available now", with several sort orders.
+- **Direct booking:** pick a date, time and duration. The tutor's current rate is **locked into the booking**, so later rate changes never affect it.
+- **Job posts:** describe what you need and tutors send proposals. Hire straight from a proposal at the tutor's proposed rate.
+- **Reviews:** rate completed sessions (1–5 stars plus written feedback).
+- **Saved tutors, messaging, and notifications.**
+
+**For tutors**
+- **Rich profiles:** headline, bio, subjects, languages, separate online and in-person rates, weekly availability, max-students capacity, photo and CV.
+- **Work history & reputation:** generated automatically from completed bookings and reviews, so it can't be edited by hand. Includes Job Success Score, repeat students and public review replies.
+- **Badges:** Verified (admin-approved), Rising Talent and Top Rated, all computed from real history.
+- **Live status:** "Active with N students", "Available now" (inside a weekly slot) or "Fully booked" (at capacity).
+- **Find work:** browse open jobs, send proposals, and track them in one place.
+- **Earnings dashboard:** completed earnings, value of active contracts, rating and Job Success Score.
+
+**For admins**
+- Platform stats and a tutor verification queue (approve or reject).
+
+### Booking lifecycle
+
+```
+requested ──► accepted ──► paid ──► in_progress ──► completed ──► reviewed
+    │            │           │
+    ▼            ▼           ▼
+rejected     cancelled   cancelled
+```
+
+The backend enforces who can make each move (see `lamif-backened/lib/bookingLifecycle.js`). Payment is a manual step for now: the tutor confirms once the student has paid outside the app. A tutor cannot accept two bookings that overlap.
 
 ## 🚀 Technologies Used
 
@@ -49,35 +74,44 @@ git clone https://github.com/oumersalah2-cmd/lamif-project.git
 cd lamif-project
 ```
 
-### 2. Backend Setup
+### 2. Run everything locally (no database setup needed)
 ```bash
-cd lamif-backened
-npm install
+npm install                          # root: installs `concurrently`
+npm install --prefix lamif-backened
+npm install --prefix lamif-frontend
+npm run dev                          # API on :5000, web app on :5173
 ```
-Create a `.env` file in the `lamif-backened` directory with the following variables:
+If no `MONGO_URI` is set, the backend starts an **in-memory MongoDB filled with demo data**. The data resets on every restart. The first run downloads a MongoDB binary (~120 MB).
+
+**Demo accounts** (password `password123`):
+
+| Role | Emails |
+| --- | --- |
+| Admin | `admin@lamif.dev` |
+| Tutors | `abebe@lamif.dev`, `hana@lamif.dev`, `dawit@lamif.dev` (pending verification), `sara@lamif.dev` |
+| Students | `meron@lamif.dev`, `yonas@lamif.dev`, `liya@lamif.dev` |
+
+### 3. Using a real database
+Create `lamif-backened/.env`:
 ```
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
 ```
-Start the backend server:
-```bash
-npm start
-```
-
-### 3. Frontend Setup
-Open a new terminal and navigate to the frontend directory:
-```bash
-cd lamif-frontend
-npm install
-```
-Create a `.env` file in the `lamif-frontend` directory:
+And `lamif-frontend/.env`:
 ```
 VITE_API_URL=http://localhost:5000
 ```
-Start the development server:
+To make an existing account an admin:
 ```bash
-npm run dev
+cd lamif-backened
+npm run make-admin -- someone@example.com
+```
+
+### 4. Tests and checks
+```bash
+cd lamif-backened && npm test        # API tests against an in-memory database
+cd lamif-frontend && npm run lint && npm run build
 ```
 
 ## 🤝 Contributing

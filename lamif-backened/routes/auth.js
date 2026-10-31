@@ -3,71 +3,60 @@ const router = express.Router()
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
+const protect = require('../middleware/authMiddleware')
+const httpError = require('../lib/httpError')
 
-router.post('/register', async (req, res) => {
-    try {
-        const { name, email, password, role } = req.body
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-        const existingUser = await User.findOne({ email })
-        if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' })
-        }
-
-        const salt = await bcrypt.genSalt(10)
-        const hashedPassword = await bcrypt.hash(password, salt)
-
-        const user = new User({
-            name,
-            email,
-            password: hashedPassword,
-            role
-        })
-
-        await user.save()
-
-        res.status(201).json({ message: 'User registered successfully' })
-    } catch (error) {
-        console.error('Registration error:', error)
-        res.status(500).json({ message: 'Server error' })
-    }
+const publicUser = user => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+  role: user.role
 })
 
-router.post(`/login`, async (req, res) => {
-    try{
-        const { email,password } = req.body
+router.post('/register', async (req, res) => {
+  const { name, password, role } = req.body
+  const email = String(req.body.email || '').trim().toLowerCase()
 
-        const user = await User.findOne({ email })
-        if (!user ) {
-            return res.status(400).json({ message: 'Invalid credentials' })
-        }
+  if (!name || !String(name).trim()) throw httpError(400, 'Name is required')
+  if (!EMAIL_PATTERN.test(email)) throw httpError(400, 'Enter a valid email address')
+  if (!password || String(password).length < 6) throw httpError(400, 'Password must be at least 6 characters')
+  // Admins are created with scripts/makeAdmin.js, never through sign-up
+  if (!['student', 'tutor'].includes(role)) throw httpError(400, 'Choose student or tutor')
 
-        const isMatch = await bcrypt.compare(password, user.password)
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid credentials' })
-        }
+  const existingUser = await User.findOne({ email })
+  if (existingUser) throw httpError(400, 'User already exists')
 
-        const token = jwt.sign(
-            { id: user._id, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '7d' }
-        )
+  const hashedPassword = await bcrypt.hash(String(password), 10)
+  await User.create({ name: String(name).trim(), email, password: hashedPassword, role })
 
-        res.status(200).json({
-            message: 'Login successful',
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
-        })
-    
-    } catch (error) {
-        console.error('Login error:', error)
-        res.status(500).json({ message: 'Server error' })
-    }
-        })
+  res.status(201).json({ message: 'User registered successfully' })
+})
+
+router.post('/login', async (req, res) => {
+  const email = String(req.body.email || '').trim()
+  const password = String(req.body.password || '')
+
+  // Accounts created before emails were lowercased may still have mixed case
+  const user = await User.findOne({ email: email.toLowerCase() }) || await User.findOne({ email })
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    throw httpError(400, 'Invalid credentials')
+  }
+
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  )
+
+  res.status(200).json({ message: 'Login successful', token, user: publicUser(user) })
+})
+
+router.get('/me', protect, async (req, res) => {
+  const user = await User.findById(req.user.id)
+  if (!user) throw httpError(404, 'User not found')
+  res.json({ user: publicUser(user) })
+})
+
 module.exports = router
-
-

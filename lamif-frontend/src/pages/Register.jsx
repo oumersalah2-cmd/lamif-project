@@ -1,7 +1,13 @@
 import { useState } from 'react'
-import axios from 'axios'
-import { useLocation } from 'react-router-dom'
-import ThemeToggle from '../components/ThemeToggle'
+import { Link, useLocation } from 'react-router-dom'
+import AuthLayout from '../components/AuthLayout'
+import Icon from '../components/Icon'
+import api, { errorMessage } from '../lib/api'
+
+const ROLES = [
+  { role: 'student', icon: 'cap', title: 'I want to learn', text: 'Find tutors and post jobs' },
+  { role: 'tutor', icon: 'briefcase', title: 'I want to teach', text: 'Get booked and earn' }
+]
 
 function Register() {
   const location = useLocation()
@@ -12,6 +18,7 @@ function Register() {
     role: location.state?.role || 'student'
   })
   const [message, setMessage] = useState('')
+  const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const handleChange = (e) => {
@@ -22,89 +29,55 @@ function Register() {
     e.preventDefault()
     setLoading(true)
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}` + '/api/auth/register', formData)
-      setMessage('Registration successful! Redirecting...')
+      await api.post('/auth/register', formData)
+      setSuccess(true)
+      setMessage('Account created! Taking you to log in...')
       setTimeout(() => {
         window.location.href = '/login'
       }, 1500)
     } catch (error) {
-      console.error('Registration error:', error)
-      setMessage(error.response?.data?.message || 'Connection failed.')
+      setMessage(errorMessage(error, 'Connection failed.'))
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="auth-container">
-      <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
-        <ThemeToggle />
-      </div>
-      <div className="glass-card" style={{ padding: '3rem', width: '100%', maxWidth: '500px' }}>
-        <h2 style={{ marginBottom: '2rem', fontSize: '2.5rem' }}>Join LAMIF</h2>
-        <form onSubmit={handleSubmit} style={{ background: 'transparent', padding: 0, border: 'none', boxShadow: 'none' }}>
-          <input
-            type="text"
-            name="name"
-            placeholder="Full Name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email Address"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Create Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-          
-          <div style={{ marginBottom: '2rem' }}>
-            <p style={{ fontWeight: '700', marginBottom: '1rem', color: 'var(--text-main)' }}>I want to join as a:</p>
-            <div style={{ display: 'flex', gap: '15px' }}>
-              <div 
-                onClick={() => setFormData({...formData, role: 'student'})}
-                style={{
-                  flex: 1, padding: '1.5rem', border: `2px solid ${formData.role === 'student' ? 'var(--primary)' : 'var(--border-glass)'}`, 
-                  borderRadius: 'var(--radius-md)', cursor: 'pointer', textAlign: 'center', background: formData.role === 'student' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(15, 23, 42, 0.3)',
-                  transition: 'all 0.2s'
-                }}>
-                <h4 style={{ color: formData.role === 'student' ? 'var(--primary)' : 'var(--text-main)', marginBottom: '5px' }}>🎓 Student</h4>
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>I want to find a tutor</p>
-              </div>
-              
-              <div 
-                onClick={() => setFormData({...formData, role: 'tutor'})}
-                style={{
-                  flex: 1, padding: '1.5rem', border: `2px solid ${formData.role === 'tutor' ? 'var(--primary)' : 'var(--border-glass)'}`, 
-                  borderRadius: 'var(--radius-md)', cursor: 'pointer', textAlign: 'center', background: formData.role === 'tutor' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(15, 23, 42, 0.3)',
-                  transition: 'all 0.2s'
-                }}>
-                <h4 style={{ color: formData.role === 'tutor' ? 'var(--primary)' : 'var(--text-main)', marginBottom: '5px' }}>💼 Tutor</h4>
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>I want to teach students</p>
-              </div>
-            </div>
-          </div>
-          
-          <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={loading}>
-            {loading ? 'Processing...' : `Sign Up as ${formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}`}
-          </button>
-        </form>
-        {message && <p style={{ marginTop: '20px', textAlign: 'center', color: message.includes('successful') ? 'var(--primary)' : '#ef4444' }}>{message}</p>}
-        <p style={{ marginTop: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-          Already have an account? <a href="/login" style={{ color: 'var(--primary)', fontWeight: '600' }}>Sign In</a>
-        </p>
-      </div>
-    </div>
+    <AuthLayout>
+      <h1>Join LAMIF</h1>
+      <p className="muted" style={{ marginTop: 0, marginBottom: '24px' }}>Create your free account in under a minute.</p>
+      <form onSubmit={handleSubmit}>
+        <div className="row" style={{ flexWrap: 'nowrap', marginBottom: '20px' }} role="radiogroup" aria-label="Account type">
+          {ROLES.map(option => (
+            <button
+              key={option.role}
+              type="button"
+              role="radio"
+              aria-checked={formData.role === option.role}
+              className={`role-option ${formData.role === option.role ? 'selected' : ''}`}
+              onClick={() => setFormData({ ...formData, role: option.role })}
+            >
+              <Icon name={option.icon} size={22} />
+              <strong>{option.title}</strong>
+              <span>{option.text}</span>
+            </button>
+          ))}
+        </div>
+        <label className="field-label" htmlFor="reg-name">Full name</label>
+        <input id="reg-name" type="text" name="name" placeholder="Abebe Kebede" autoComplete="name" value={formData.name} onChange={handleChange} required />
+        <label className="field-label" htmlFor="reg-email">Email</label>
+        <input id="reg-email" type="email" name="email" placeholder="you@example.com" autoComplete="email" value={formData.email} onChange={handleChange} required />
+        <label className="field-label" htmlFor="reg-password">Password</label>
+        <input id="reg-password" type="password" name="password" placeholder="At least 6 characters" autoComplete="new-password" minLength={6} value={formData.password} onChange={handleChange} required />
+        <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '0.5rem' }} disabled={loading}>
+          {loading ? 'Creating account...' : `Sign up as a ${formData.role}`}
+        </button>
+      </form>
+      {message && <p className={success ? 'success-text' : 'error-text'} style={{ marginTop: '1rem', textAlign: 'center' }}>{message}</p>}
+      <p className="muted" style={{ marginTop: '2rem', textAlign: 'center' }}>
+        Already have an account? <Link to="/login" className="success-text" style={{ fontWeight: 600 }}>Log in</Link>
+      </p>
+    </AuthLayout>
   )
 }
 

@@ -1,37 +1,39 @@
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react'
+import Icon from './Icon'
 
 function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    // Check local storage or system preference
-    const storedTheme = localStorage.getItem('theme');
-    if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setIsDark(true);
-      document.body.classList.add('dark-mode');
-    }
-  }, []);
+  // main.jsx applies the stored or system theme to <body> before the first render
+  const [isDark, setIsDark] = useState(() => document.body.classList.contains('dark-mode'))
 
   const toggleTheme = () => {
-    setIsDark(!isDark);
-    if (!isDark) {
-      document.body.classList.add('dark-mode');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.body.classList.remove('dark-mode');
-      localStorage.setItem('theme', 'light');
+    const next = !isDark
+    setIsDark(next)
+    document.body.classList.toggle('dark-mode', next)
+    try {
+      localStorage.setItem('theme', next ? 'dark' : 'light')
+    } catch {
+      // Private mode: the choice just won't persist
     }
-  };
+  }
 
+  const label = isDark ? 'Switch to light mode' : 'Switch to dark mode'
   return (
-    <button 
-      onClick={toggleTheme} 
-      className="theme-toggle-btn"
-      title="Toggle Dark Mode"
+    <button
+      type="button"
+      role="switch"
+      aria-checked={isDark}
+      aria-label={label}
+      title={label}
+      onClick={toggleTheme}
+      className={`theme-switch ${isDark ? 'is-dark' : ''}`}
     >
-      {isDark ? '☀️ Light' : '🌙 Dark'}
+      <Icon name="sun" size={14} className="theme-switch-sun" />
+      <Icon name="moon" size={14} className="theme-switch-moon" />
+      <span className="theme-switch-knob">
+        <Icon name={isDark ? 'moon' : 'sun'} size={14} />
+      </span>
     </button>
-  );
+  )
 }
 
-export default ThemeToggle;
+export default ThemeToggle

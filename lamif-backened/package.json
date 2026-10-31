@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node --watch server.js",
+    "make-admin": "node scripts/makeAdmin.js",
+    "test": "node --test tests/api.test.js"
   },
   "keywords": [],
   "author": "",

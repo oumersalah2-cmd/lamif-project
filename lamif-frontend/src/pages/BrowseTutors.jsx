@@ -1,135 +1,184 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import ThemeToggle from '../components/ThemeToggle'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import TutorCard from '../components/TutorCard'
+import HireModal from '../components/HireModal'
+import api from '../lib/api'
+import { getUser } from '../lib/session'
+import useSavedTutors from '../lib/useSavedTutors'
+
+const SORT_OPTIONS = [
+  ['best_match', 'Best match'],
+  ['rating', 'Highest rated'],
+  ['sessions', 'Most sessions'],
+  ['price_low', 'Price: low to high'],
+  ['price_high', 'Price: high to low'],
+  ['newest', 'Newest']
+]
 
 function BrowseTutors() {
+  const navigate = useNavigate()
+  const user = getUser()
+  const [params, setParams] = useSearchParams()
   const [tutors, setTutors] = useState([])
+  const [subjects, setSubjects] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedTutor, setSelectedTutor] = useState(null)
-  const [bookingForm, setBookingForm] = useState({ subject: '', message: '' })
-  const [bookingMessage, setBookingMessage] = useState('')
+  const [hiring, setHiring] = useState(null)
+  const [notice, setNotice] = useState('')
+  const [draft, setDraft] = useState({ q: params.get('q') || '', minRate: params.get('minRate') || '', maxRate: params.get('maxRate') || '' })
+  const { savedIds, toggleSaved, canSave } = useSavedTutors()
 
-  const handleHireClick = (tutorId) => {
-    setSelectedTutor(tutorId)
-    setBookingMessage('')
-    setBookingForm({ subject: '', message: '' })
-  }
-
-  const handleBookingSubmit = async (e) => {
-    e.preventDefault()
-    try {
-      const token = localStorage.getItem('token')
-      await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}` + '/api/booking/hire',
-        {
-          tutorId: selectedTutor,
-          subject: bookingForm.subject,
-          message: bookingForm.message
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      setBookingMessage('Booking request sent successfully!')
-      setTimeout(() => setSelectedTutor(null), 2000)
-    } catch (error) {
-      console.error(error)
-      setBookingMessage(error.response?.data?.message || 'Failed to send request')
-    }
-  }
+  const query = params.toString()
 
   useEffect(() => {
-    async function fetchTutors() {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}` + '/api/tutor/all')
-        setTutors(response.data.tutors)
-        setLoading(false)
-      } catch (error) {
-        console.log(error)
-        setLoading(false)
-      }
-    }
-    fetchTutors()
+    api.get('/tutor/subjects').then(res => setSubjects(res.data.subjects)).catch(() => {})
   }, [])
 
-  if (loading) return <div className="auth-container"><h2>Loading expert tutors...</h2></div>
+  useEffect(() => {
+    let cancelled = false
+    api.get(`/tutor/all?${query}`)
+      .then(res => { if (!cancelled) setTutors(res.data.tutors) })
+      .catch(() => { if (!cancelled) setTutors([]) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [query])
+
+  const setFilter = (key, value) => {
+    const next = new URLSearchParams(params)
+    if (value) next.set(key, value)
+    else next.delete(key)
+    setParams(next, { replace: true })
+  }
+
+  const applyDraft = e => {
+    e.preventDefault()
+    const next = new URLSearchParams(params)
+    for (const [key, value] of Object.entries(draft)) {
+      if (value) next.set(key, value)
+      else next.delete(key)
+    }
+    setParams(next, { replace: true })
+  }
+
+  const clearFilters = () => {
+    setDraft({ q: '', minRate: '', maxRate: '' })
+    setParams({}, { replace: true })
+  }
+
+  const handleHire = tutor => {
+    if (!user) navigate('/login', { state: { from: `/tutors/${tutor._id}` } })
+    else setHiring(tutor)
+  }
 
   return (
-    <div className="browse-container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '60px' }}>
-        <h2 style={{ fontSize: '3rem' }}>Find a Tutor</h2>
-        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-          <ThemeToggle />
-          <button onClick={() => window.location.href='/dashboard'} style={{ background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-main)', padding: '8px 16px', borderRadius: 'var(--radius-md)', fontWeight: '600', cursor: 'pointer' }}>Dashboard</button>
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <p className="eyebrow">Talent marketplace</p>
+          <h1>Find a Tutor</h1>
         </div>
-      </div>
-      
-      <div className="tutors-grid">
-        {tutors.map((tutor) => (
-          <div className="tutor-card glass-card" key={tutor._id}>
-            <div className="tutor-image-container">
-              <img 
-                src={tutor.profilePictureUrl ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${tutor.profilePictureUrl}` : 'https://images.unsplash.com/photo-1544717297-fa154da09f9d?q=80&w=400&auto=format&fit=crop'} 
-                alt={tutor.user.name} 
-              />
-            </div>
-            <h3>{tutor.user.name}</h3>
-            <div style={{ marginBottom: '16px' }}>
-              {tutor.subjects.map((subject, index) => (
-                <span className="subject-tag" key={index}>
-                  {subject}
-                </span>
-              ))}
-            </div>
-            <p className="tutor-rate">{tutor.hourlyRate} ETB / hr</p>
-            <p style={{ minHeight: '80px' }}>{tutor.bio}</p>
-            
-            <div style={{ marginTop: 'auto' }}>
-              {tutor.cvUrl && (
-                <a 
-                  href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${tutor.cvUrl}`} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  style={{ display: 'block', marginBottom: '15px', color: 'var(--primary)', fontWeight: '600', textDecoration: 'none', fontSize: '0.9rem' }}
-                >
-                  📄 View Qualifications
-                </a>
-              )}
-              <button className="btn-primary" style={{ width: '100%', borderRadius: 'var(--radius-md)', padding: '12px' }} onClick={() => handleHireClick(tutor._id)}>
-                Hire {tutor.user.name.split(' ')[0]}
-              </button>
-            </div>
-          </div>
-        ))}
+        <form onSubmit={applyDraft} className="row" style={{ flex: '1 1 320px', maxWidth: '520px', flexWrap: 'nowrap' }}>
+          <input className="input" placeholder="Search by name, subject or keyword" value={draft.q} onChange={e => setDraft({ ...draft, q: e.target.value })} />
+          <button className="btn-primary btn-sm" type="submit">Search</button>
+        </form>
       </div>
 
-      {/* Hire Modal */}
-      {selectedTutor && (
-        <div className="modal-overlay">
-          <div className="modal-content glass-card" style={{ maxWidth: '450px', background: 'var(--bg-dark)' }}>
-            <h3 style={{ marginBottom: '20px' }}>Send Hiring Request</h3>
-            {bookingMessage && <p style={{ color: bookingMessage.includes('success') ? 'var(--primary)' : '#ef4444', marginBottom: '15px', textAlign: 'center' }}>{bookingMessage}</p>}
-            <form onSubmit={handleBookingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-              <input 
-                type="text" 
-                placeholder="Subject to learn..." 
-                required 
-                value={bookingForm.subject}
-                onChange={e => setBookingForm({...bookingForm, subject: e.target.value})}
-              />
-              <textarea 
-                placeholder="Details about your needs..." 
-                required
-                rows="4"
-                value={bookingForm.message}
-                onChange={e => setBookingForm({...bookingForm, message: e.target.value})}
-                style={{ background: 'rgba(15, 23, 42, 0.5)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', color: 'white', padding: '1rem', marginBottom: '1.5rem', fontFamily: 'inherit' }}
-              />
-              <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setSelectedTutor(null)} className="btn-secondary" style={{ padding: '10px 20px', fontSize: '0.9rem' }}>Cancel</button>
-                <button type="submit" className="btn-primary" style={{ padding: '10px 20px', fontSize: '0.9rem' }}>Send Request</button>
-              </div>
-            </form>
+      {notice && <div className="glass-card card success-text" style={{ marginBottom: '20px' }}>{notice}</div>}
+
+      <div className="with-sidebar">
+        <aside className="glass-card card">
+          <div className="row-between" style={{ marginBottom: '12px' }}>
+            <strong>Filters</strong>
+            <button className="btn-ghost btn-sm" onClick={clearFilters}>Clear</button>
           </div>
-        </div>
+
+          <div className="field">
+            <label htmlFor="f-subject">Subject</label>
+            <select id="f-subject" value={params.get('subject') || ''} onChange={e => setFilter('subject', e.target.value)}>
+              <option value="">Any subject</option>
+              {subjects.map(s => <option key={s}>{s}</option>)}
+            </select>
+          </div>
+
+          <div className="field">
+            <span className="field-label">Session type</span>
+            <div className="row">
+              {[['', 'Any'], ['online', 'Online'], ['in_person', 'In person']].map(([value, label]) => (
+                <button key={label} type="button" className={`chip ${(params.get('mode') || '') === value ? 'selected' : ''}`} onClick={() => setFilter('mode', value)}>{label}</button>
+              ))}
+            </div>
+          </div>
+
+          <form onSubmit={applyDraft} className="field">
+            <span className="field-label">Hourly rate (ETB)</span>
+            <div className="row" style={{ flexWrap: 'nowrap' }}>
+              <input className="input" type="number" min="0" placeholder="Min" value={draft.minRate} onChange={e => setDraft({ ...draft, minRate: e.target.value })} />
+              <input className="input" type="number" min="0" placeholder="Max" value={draft.maxRate} onChange={e => setDraft({ ...draft, maxRate: e.target.value })} />
+            </div>
+            <button type="submit" className="btn-ghost btn-sm">Apply rate</button>
+          </form>
+
+          <div className="field">
+            <label htmlFor="f-rating">Rating</label>
+            <select id="f-rating" value={params.get('minRating') || ''} onChange={e => setFilter('minRating', e.target.value)}>
+              <option value="">Any rating</option>
+              <option value="4.5">4.5 & up</option>
+              <option value="4">4.0 & up</option>
+              <option value="3">3.0 & up</option>
+            </select>
+          </div>
+
+          <label className="row small" style={{ marginBottom: '10px', cursor: 'pointer' }}>
+            <input type="checkbox" checked={params.get('verified') === 'true'} onChange={e => setFilter('verified', e.target.checked ? 'true' : '')} />
+            Verified tutors only
+          </label>
+          <label className="row small" style={{ cursor: 'pointer' }}>
+            <input type="checkbox" checked={params.get('availableNow') === 'true'} onChange={e => setFilter('availableNow', e.target.checked ? 'true' : '')} />
+            Available now
+          </label>
+        </aside>
+
+        <section>
+          <div className="row-between" style={{ marginBottom: '16px' }}>
+            <span className="muted">{loading ? 'Searching...' : `${tutors.length} tutor${tutors.length === 1 ? '' : 's'} found`}</span>
+            <select className="input" style={{ width: 'auto' }} value={params.get('sort') || 'best_match'} onChange={e => setFilter('sort', e.target.value)} aria-label="Sort by">
+              {SORT_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </select>
+          </div>
+
+          {!loading && tutors.length === 0 ? (
+            <div className="glass-card empty">
+              <p>No tutors match these filters.</p>
+              <button className="btn-ghost btn-sm" onClick={clearFilters}>Clear filters</button>
+            </div>
+          ) : (
+            <div className="stack">
+              {tutors.map(tutor => (
+                <TutorCard
+                  key={tutor._id}
+                  tutor={tutor}
+                  saved={savedIds.has(tutor._id)}
+                  onToggleSave={canSave ? toggleSaved : null}
+                  action={(!user || user.role === 'student') && (
+                    <button className="btn-primary btn-sm" onClick={() => handleHire(tutor)} disabled={tutor.availabilityStatus === 'fully_booked'}>
+                      {tutor.availabilityStatus === 'fully_booked' ? 'Fully booked' : 'Book session'}
+                    </button>
+                  )}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {hiring && (
+        <HireModal
+          tutor={hiring}
+          onClose={() => setHiring(null)}
+          onDone={() => {
+            setHiring(null)
+            setNotice('Request sent! You can follow it on your dashboard.')
+          }}
+        />
       )}
     </div>
   )

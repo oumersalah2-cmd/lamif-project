@@ -1,6 +1,7 @@
 const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
+const httpError = require('../lib/httpError')
 
 // Ensure uploads directory exists
 const dir = 'uploads/'
@@ -28,7 +29,7 @@ const fileFilter = (req, file, cb) => {
   if (extname && mimetype) {
     return cb(null, true)
   } else {
-    cb(new Error('Only .pdf, .doc, .docx, .jpg, .jpeg and .png formats allowed!'))
+    cb(httpError(400, 'Only .pdf, .doc, .docx, .jpg, .jpeg and .png formats allowed!'))
   }
 }
 
