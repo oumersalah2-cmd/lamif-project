@@ -35,7 +35,7 @@ function Login() {
   return (
     <AuthLayout>
       <h1>Welcome back</h1>
-      <p className="muted" style={{ marginTop: 0, marginBottom: '28px' }}>Log in to continue learning and teaching on LAMIF.</p>
+      <p className="muted" style={{ marginTop: 0, marginBottom: '28px' }}>Log in to continue learning and teaching on <span className="brand-stylish">LAMIF</span>.</p>
       <form onSubmit={handleSubmit}>
         <label className="field-label" htmlFor="login-email">Email</label>
         <input
@@ -65,7 +65,7 @@ function Login() {
       </form>
       {message && <p className="error-text" style={{ marginTop: '1rem', textAlign: 'center' }}>{message}</p>}
       <p className="muted" style={{ marginTop: '2rem', textAlign: 'center' }}>
-        New to LAMIF? <Link to="/register" className="success-text" style={{ fontWeight: 600 }}>Create an account</Link>
+        New to <span className="brand-stylish">LAMIF</span>? <Link to="/register" className="success-text" style={{ fontWeight: 600 }}>Join <span className="brand-stylish">LAMIF</span></Link>
       </p>
     </AuthLayout>
   )

@@ -147,6 +147,36 @@ body:not(.dark-mode) .logo-word {
   display: inline-block;
 }
 
+/* Stylish Italic Signature Wordmark */
+.brand-stylish {
+  font-family: 'Syne', 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.1em;
+  transform: skewX(-7deg);
+  display: inline-block;
+  background: linear-gradient(135deg, #064e3b 0%, #047857 40%, #10b981 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 4px rgba(16, 185, 129, 0.25));
+  transition: all 0.25s ease;
+}
+.brand-stylish:hover {
+  transform: skewX(-9deg) scale(1.04);
+}
+body.dark-mode .brand-stylish {
+  background: linear-gradient(135deg, #ffffff 0%, #6ee7b7 45%, #34d399 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 10px rgba(52, 211, 153, 0.4));
+}
+.auth-brand .brand-stylish {
+  background: linear-gradient(135deg, #ffffff 0%, #6ee7b7 45%, #34d399 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
 /* =================== BUTTONS =================== */
 .btn-primary, .btn-secondary, .btn-ghost {
   display: inline-flex;

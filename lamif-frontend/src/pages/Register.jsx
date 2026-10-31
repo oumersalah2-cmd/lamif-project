@@ -44,7 +44,7 @@ function Register() {
 
   return (
     <AuthLayout>
-      <h1>Join LAMIF</h1>
+      <h1>Join <span className="brand-stylish">LAMIF</span></h1>
       <p className="muted" style={{ marginTop: 0, marginBottom: '24px' }}>Create your free account in under a minute.</p>
       <form onSubmit={handleSubmit}>
         <div className="row" style={{ flexWrap: 'nowrap', marginBottom: '20px' }} role="radiogroup" aria-label="Account type">
