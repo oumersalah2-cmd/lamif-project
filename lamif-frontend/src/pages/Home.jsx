@@ -5,7 +5,7 @@ import Avatar from '../components/Avatar'
 import Icon from '../components/Icon'
 import TutorBadges from '../components/TutorBadges'
 import { StarRating } from '../components/StarRating'
-import Logo, { LogoMark } from '../components/Logo'
+import Logo from '../components/Logo'
 import GeodesicGlobe3D from '../components/GeodesicGlobe3D'
 import api from '../lib/api'
 import { getUser } from '../lib/session'
@@ -86,8 +86,6 @@ function Home() {
     searchFor(search.trim())
   }
 
-  const heroTutor = featuredTutors[0]
-  const heroReview = highlights?.reviews[0]
   const subjects = highlights?.subjects.length ? highlights.subjects.slice(0, 8) : FALLBACK_SUBJECTS
 
   const stats = highlights && [
@@ -152,6 +150,11 @@ function Home() {
 
           <div className="hero-visual">
             <div className="hero-orb">
+              <div className="hero-orb-badge">
+                <span className="hero-orb-dot" />
+                <span className="hero-orb-brand">LAMIF</span>
+                <span className="hero-orb-sub">KINETIC 3D</span>
+              </div>
               <GeodesicGlobe3D className="hero-3d-globe" />
             </div>
           </div>
