@@ -728,24 +728,28 @@ body.dark-mode .text-accent { color: #34d399; }
 .avatar-stack .avatar { width: 40px; height: 40px; font-size: 0.85rem; border: 3px solid var(--bg-main); margin-left: -10px; }
 .avatar-stack .avatar:first-child { margin-left: 0; }
 
-/* Hero visual: real data arranged as a floating dashboard */
-.hero-visual { position: relative; min-height: 540px; }
+/* Hero visual: pure interactive 3D procedural kinetic globe emblem */
+.hero-visual { position: relative; min-height: 520px; width: 100%; }
 .hero-orb {
   position: absolute;
-  inset: 6% 8% 6% 8%;
-  border-radius: 26px;
+  inset: 0;
+  border-radius: 28px;
   background:
-    radial-gradient(circle at 70% 25%, rgba(52, 211, 153, 0.35), transparent 55%),
-    linear-gradient(160deg, var(--brand-deep), var(--brand-ink));
-  box-shadow: 0 40px 80px -30px rgba(5, 46, 31, 0.55);
+    radial-gradient(circle at 65% 25%, rgba(52, 211, 153, 0.45), transparent 58%),
+    radial-gradient(circle at 35% 80%, rgba(16, 185, 129, 0.28), transparent 55%),
+    linear-gradient(160deg, #053826, #021a12);
+  border: 1px solid rgba(52, 211, 153, 0.32);
+  box-shadow: 0 32px 80px -20px rgba(4, 38, 26, 0.75), 0 0 50px -10px rgba(16, 185, 129, 0.3);
   overflow: hidden;
 }
 .hero-orb::after {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 36px 36px;
+  background-image:
+    linear-gradient(rgba(52, 211, 153, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 211, 153, 0.07) 1px, transparent 1px);
+  background-size: 38px 38px;
   pointer-events: none;
 }
 .hero-3d-globe { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }

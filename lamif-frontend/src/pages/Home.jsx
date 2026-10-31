@@ -154,48 +154,6 @@ function Home() {
             <div className="hero-orb">
               <GeodesicGlobe3D className="hero-3d-globe" />
             </div>
-
-            {heroTutor && (
-              <div className="float-card float-tutor">
-                <div className="row" style={{ flexWrap: 'nowrap', marginBottom: '6px' }}>
-                  <Avatar path={heroTutor.profilePictureUrl} name={heroTutor.user?.name} className="avatar-sm" />
-                  <div style={{ minWidth: 0 }}>
-                    <h4>{heroTutor.user?.name}</h4>
-                    <div className="muted small clamp-1" style={{ margin: 0 }}>{heroTutor.headline}</div>
-                  </div>
-                </div>
-                <TutorBadges tutor={heroTutor} />
-                <div className="row-between" style={{ marginTop: '8px' }}>
-                  <StarRating value={heroTutor.stats.averageRating} count={heroTutor.stats.reviewCount} />
-                  <strong className="success-text">{formatMoney(startingRate(heroTutor))}/hr</strong>
-                </div>
-              </div>
-            )}
-
-            <div className="float-card float-session">
-              <div className="float-label"><span className="float-icon"><Icon name="calendar" size={16} /></span>Session confirmed</div>
-              <h4>{heroTutor?.subjects[0] || 'Mathematics'}</h4>
-              <div className="muted small">Tuesday · 5:00 PM · Online</div>
-              <div className="small" style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Icon name="lock" size={14} className="success-text" /> Price locked
-              </div>
-            </div>
-
-            <div className="float-card float-progress">
-              <div className="float-label"><span className="float-icon"><Icon name="trendingUp" size={16} /></span>Exam readiness</div>
-              <div className="progress-bars">
-                {[38, 50, 61, 72, 92].map((h, i) => <span key={i} style={{ height: `${h}%` }} />)}
-              </div>
-              <div className="row-between small muted" style={{ marginTop: '6px' }}><span>Week 1</span><span>Week 5</span></div>
-            </div>
-
-            {heroReview && (
-              <div className="float-card float-review">
-                <div className="stars small">{'★'.repeat(heroReview.rating)}</div>
-                <p className="small clamp-2" style={{ margin: '6px 0' }}>"{heroReview.comment}"</p>
-                <div className="muted small">{heroReview.studentName} · {heroReview.subject}</div>
-              </div>
-            )}
           </div>
         </div>
       </section>
