@@ -6,6 +6,7 @@ import Icon from '../components/Icon'
 import TutorBadges from '../components/TutorBadges'
 import { StarRating } from '../components/StarRating'
 import Logo, { LogoMark } from '../components/Logo'
+import GeodesicGlobe3D from '../components/GeodesicGlobe3D'
 import api from '../lib/api'
 import { getUser } from '../lib/session'
 import { formatMoney, startingRate } from '../lib/format'
@@ -149,9 +150,9 @@ function Home() {
             )}
           </div>
 
-          <div className="hero-visual" aria-hidden="true">
+          <div className="hero-visual">
             <div className="hero-orb">
-              <LogoMark size={340} className="hero-orb-globe" />
+              <GeodesicGlobe3D className="hero-3d-globe" />
             </div>
 
             {heroTutor && (
