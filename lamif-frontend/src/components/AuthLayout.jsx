@@ -34,7 +34,12 @@ function AuthLayout({ children }) {
           <span className="auth-mobile-logo"><Logo size={30} /></span>
           <ThemeToggle />
         </div>
-        <div className="auth-panel">{children}</div>
+        <div className="auth-panel">
+          <div className="auth-mobile-3d-hero" aria-hidden="true">
+            <GeodesicGlobe3D className="auth-mobile-3d-globe" showShadow={false} speed={0.7} interactive={false} />
+          </div>
+          {children}
+        </div>
       </main>
     </div>
   )
