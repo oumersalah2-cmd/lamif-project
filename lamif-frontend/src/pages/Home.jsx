@@ -150,11 +150,6 @@ function Home() {
 
           <div className="hero-visual">
             <div className="hero-orb">
-              <div className="hero-orb-badge">
-                <span className="hero-orb-dot" />
-                <span className="hero-orb-brand">LAMIF</span>
-                <span className="hero-orb-sub">KINETIC 3D</span>
-              </div>
               <GeodesicGlobe3D className="hero-3d-globe" />
             </div>
           </div>

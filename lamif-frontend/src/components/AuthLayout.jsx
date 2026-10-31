@@ -15,6 +15,9 @@ function AuthLayout({ children }) {
   return (
     <div className="auth-shell">
       <aside className="auth-brand">
+        <div className="auth-3d-wrap" aria-hidden="true">
+          <GeodesicGlobe3D className="auth-3d-globe" showShadow={false} speed={0.65} interactive={false} />
+        </div>
         <Logo size={36} />
         <div>
           <h2>Ethiopia's marketplace for learning.</h2>
@@ -25,9 +28,6 @@ function AuthLayout({ children }) {
           </ul>
         </div>
         <p style={{ margin: 0, color: 'rgba(233, 244, 238, 0.6)', fontSize: '0.85rem' }}>© {new Date().getFullYear()} LAMIF Educational Platform</p>
-        <div className="auth-3d-wrap" aria-hidden="true">
-          <GeodesicGlobe3D className="auth-3d-globe" showShadow={false} speed={0.75} interactive={false} />
-        </div>
       </aside>
       <main className="auth-container">
         <div className="auth-top">

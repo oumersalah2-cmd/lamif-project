@@ -631,9 +631,8 @@ body.dark-mode .availability-fully_booked { color: #fbbf24; }
 .auth-brand h2 { font-size: clamp(2rem, 3.4vw, 2.8rem); margin: 0 0 16px; letter-spacing: -0.025em; }
 .auth-brand ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
 .auth-brand li { display: flex; gap: 12px; align-items: flex-start; color: rgba(233, 244, 238, 0.85); }
-.auth-globe { position: absolute; right: -80px; bottom: -80px; opacity: 0.18; z-index: 0 !important; }
-.auth-3d-wrap {
-  position: absolute;
+.auth-brand > .auth-3d-wrap {
+  position: absolute !important;
   right: -80px;
   bottom: -60px;
   width: 520px;
@@ -642,11 +641,12 @@ body.dark-mode .availability-fully_booked { color: #fbbf24; }
   opacity: 0.38;
   pointer-events: none;
   filter: drop-shadow(0 0 40px rgba(52, 211, 153, 0.25));
+  overflow: hidden;
   transition: opacity 0.5s ease;
 }
 .auth-3d-globe { width: 100%; height: 100%; }
 @media (max-width: 900px) {
-  .auth-3d-wrap { width: 380px; height: 380px; right: -40px; bottom: -30px; opacity: 0.25; }
+  .auth-brand > .auth-3d-wrap { width: 380px; height: 380px; right: -40px; bottom: -30px; opacity: 0.25; }
 }
 
 .auth-container {
@@ -798,55 +798,7 @@ body.dark-mode .text-accent { color: #34d399; }
 .hero-3d-globe { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
 .hero-orb-globe { position: absolute; right: -40px; top: -30px; opacity: 0.85; }
 
-/* Hero 3D Emblem Telemetry Badge */
-.hero-orb-badge {
-  position: absolute;
-  top: 18px;
-  left: 20px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: rgba(4, 26, 17, 0.7);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(52, 211, 153, 0.3);
-  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(52, 211, 153, 0.12);
-  pointer-events: none;
-  user-select: none;
-}
-.hero-orb-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #34d399;
-  box-shadow: 0 0 10px #34d399;
-  animation: pulse 2s infinite ease-in-out;
-}
-.hero-orb-brand {
-  font-family: 'Syne', 'Outfit', 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 800;
-  font-style: italic;
-  letter-spacing: 0.14em;
-  transform: skewX(-6deg);
-  background: linear-gradient(135deg, #ffffff, #6ee7b7);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: inline-block;
-}
-.hero-orb-sub {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: #34d399;
-  text-transform: uppercase;
-  padding-left: 8px;
-  border-left: 1px solid rgba(52, 211, 153, 0.3);
-}
+
 
 /* Stats band */
 .stats-band { max-width: 1100px; margin: -48px auto 0; padding: 0 16px; position: relative; z-index: 3; }

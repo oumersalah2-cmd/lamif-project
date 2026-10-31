@@ -377,9 +377,11 @@ export default function GeodesicGlobe3D({
       if (!container || !renderer) return
       const width = container.clientWidth || 340
       const height = container.clientHeight || 340
-      camera.aspect = width / height
-      camera.updateProjectionMatrix()
-      renderer.setSize(width, height)
+      if (width > 0 && height > 0) {
+        camera.aspect = width / height
+        camera.updateProjectionMatrix()
+        renderer.setSize(width, height)
+      }
     })
     resizeObserver.observe(container)
 
