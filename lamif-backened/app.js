@@ -18,12 +18,37 @@ const errorHandler = require('./middleware/errorHandler')
 
 const app = express()
 
-app.use(cors())
+const normalizeOrigin = (url) => (url ? url.trim().replace(/\/+$/, '') : '')
+
+const allowedOrigins = [
+  'https://lamif-platform.vercel.app',
+  'http://localhost:5173',
+  normalizeOrigin(process.env.CLIENT_URL)
+].filter(Boolean)
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g., mobile apps, curl, or server-to-server health checks)
+      if (!origin) return callback(null, true)
+      const cleanOrigin = normalizeOrigin(origin)
+      if (allowedOrigins.includes(cleanOrigin)) {
+        return callback(null, true)
+      }
+      return callback(new Error(`Origin ${origin} not allowed by CORS`))
+    },
+    credentials: true
+  })
+)
 app.use(express.json())
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 app.get('/', (req, res) => {
   res.send('LAMIF API is running')
+})
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok' })
 })
 
 app.use('/api/auth', authRoutes)

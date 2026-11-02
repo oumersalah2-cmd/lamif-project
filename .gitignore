@@ -1,8 +1,11 @@
 node_modules/
 .env
+.env.*
+!.env.example
 dist/
 build/
 .DS_Store
 *.log
+uploads/
 lamif-backened/uploads/*
 !lamif-backened/uploads/.gitkeep

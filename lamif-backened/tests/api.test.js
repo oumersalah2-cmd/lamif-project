@@ -218,3 +218,20 @@ describe('admin', () => {
     assert.equal(res.data.tutor.verificationStatus, 'approved')
   })
 })
+
+describe('health and cors', () => {
+  it('GET /api/health returns status ok', async () => {
+    const res = await call('GET', '/health')
+    assert.equal(res.status, 200)
+    assert.deepEqual(res.data, { status: 'ok' })
+  })
+
+  it('allows requests from valid CORS origins', async () => {
+    const res = await fetch(baseUrl + '/health', {
+      headers: { Origin: 'https://lamif-platform.vercel.app' }
+    })
+    assert.equal(res.status, 200)
+    assert.equal(res.headers.get('access-control-allow-origin'), 'https://lamif-platform.vercel.app')
+  })
+})
+

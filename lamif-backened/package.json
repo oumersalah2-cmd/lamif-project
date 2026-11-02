@@ -1,17 +1,28 @@
 {
   "name": "lamif-backened",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "RESTful API and Booking Lifecycle State Machine for LAMIF Educational Marketplace",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
     "make-admin": "node scripts/makeAdmin.js",
     "test": "node --test tests/api.test.js"
   },
-  "keywords": [],
+  "keywords": [
+    "express",
+    "nodejs",
+    "mongodb",
+    "booking-lifecycle",
+    "rest-api",
+    "jwt",
+    "marketplace"
+  ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^3.0.3",
