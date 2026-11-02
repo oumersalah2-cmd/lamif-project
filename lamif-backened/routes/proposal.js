@@ -5,6 +5,7 @@ const Tutor = require('../models/Tutor')
 const Job = require('../models/Job')
 const protect = require('../middleware/authMiddleware')
 const requireRole = require('../middleware/requireRole')
+const requireVerified = require('../middleware/requireVerified')
 const httpError = require('../lib/httpError')
 const notify = require('../lib/notify')
 const createBooking = require('../lib/createBooking')
@@ -47,7 +48,7 @@ router.put('/:id/decline', protect, requireRole('student'), async (req, res) => 
 })
 
 // Hiring turns the proposal into an accepted booking at the proposal's rate
-router.post('/:id/hire', protect, requireRole('student'), async (req, res) => {
+router.post('/:id/hire', protect, requireRole('student'), requireVerified, async (req, res) => {
   const proposal = await ownedProposal(req)
   const { job, tutor } = proposal
   if (job.status !== 'open') throw httpError(400, 'This job is no longer open')

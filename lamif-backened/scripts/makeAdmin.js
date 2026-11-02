@@ -10,7 +10,7 @@ async function main() {
   if (!process.env.MONGO_URI) throw new Error('MONGO_URI is not set')
 
   await mongoose.connect(process.env.MONGO_URI)
-  const user = await User.findOneAndUpdate({ email }, { role: 'admin' }, { returnDocument: 'after' })
+  const user = await User.findOneAndUpdate({ email }, { role: 'admin', emailVerified: true }, { returnDocument: 'after' })
   if (!user) throw new Error(`No account with email ${email}`)
   console.log(`${user.name} is now an admin. They need to log out and back in.`)
 }

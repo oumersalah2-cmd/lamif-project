@@ -6,6 +6,8 @@ const mongoose = require('mongoose')
 const { MongoMemoryServer } = require('mongodb-memory-server')
 
 process.env.JWT_SECRET = 'test-secret'
+const bcrypt = require('bcryptjs')
+const User = require('../models/User')
 const app = require('../app')
 const seed = require('../seed')
 
@@ -59,17 +61,215 @@ after(async () => {
   await memoryServer.stop()
 })
 
-describe('auth', () => {
+describe('auth and email verification', () => {
   it('rejects self-registration as admin', async () => {
     const res = await call('POST', '/auth/register', null, { name: 'X', email: 'x@example.com', password: 'secret1', role: 'admin' })
     assert.equal(res.status, 400)
   })
 
-  it('normalises email case on register and login', async () => {
+  it('normalises email case on register and login, registers as unverified', async () => {
     const res = await call('POST', '/auth/register', null, { name: 'Case Test', email: 'Case@Example.com', password: 'secret1', role: 'student' })
     assert.equal(res.status, 201)
+    assert.equal(res.data.emailVerified, false)
+
+    const user = await User.findOne({ email: 'case@example.com' })
+    assert.equal(user.emailVerified, false)
+    assert.ok(user.verificationCodeHash)
+    assert.ok(user.verificationExpires > new Date())
+    assert.equal(user.verificationAttempts, 0)
+
     const login = await call('POST', '/auth/login', null, { email: 'CASE@example.com', password: 'secret1' })
     assert.equal(login.status, 200)
+    assert.equal(login.data.user.emailVerified, false)
+  })
+
+  it('blocks unverified users from booking creation, job posting, proposals, and messaging', async () => {
+    const reg = await call('POST', '/auth/register', null, { name: 'Unverified Student', email: 'unverified-student@example.com', password: 'password123', role: 'student' })
+    assert.equal(reg.status, 201)
+    const login = await call('POST', '/auth/login', null, { email: 'unverified-student@example.com', password: 'password123' })
+    const token = login.data.token
+
+    const hana = await tutorByName('Hana')
+    const slot = nextSlot(1)
+
+    // Booking creation blocked
+    const bookRes = await call('POST', '/booking/hire', token, { tutorId: hana._id, subject: 'English', mode: 'online', ...slot })
+    assert.equal(bookRes.status, 403)
+    assert.equal(bookRes.data.code, 'EMAIL_NOT_VERIFIED')
+
+    // Job posting blocked
+    const jobRes = await call('POST', '/jobs', token, { title: 'Need Math Tutor', subject: 'Math', level: 'secondary', mode: 'online', description: 'Help needed' })
+    assert.equal(jobRes.status, 403)
+    assert.equal(jobRes.data.code, 'EMAIL_NOT_VERIFIED')
+
+    // Messaging blocked
+    const msgRes = await call('POST', '/messages/conversations', token, { userId: hana.user._id })
+    assert.equal(msgRes.status, 403)
+    assert.equal(msgRes.data.code, 'EMAIL_NOT_VERIFIED')
+
+    // Unverified tutor blocked from sending proposals
+    const regTutor = await call('POST', '/auth/register', null, { name: 'Unverified Tutor', email: 'unverified-tutor@example.com', password: 'password123', role: 'tutor' })
+    assert.equal(regTutor.status, 201)
+    const tutorLogin = await call('POST', '/auth/login', null, { email: 'unverified-tutor@example.com', password: 'password123' })
+    const tutorToken = tutorLogin.data.token
+
+    const openJobs = await call('GET', '/jobs')
+    assert.ok(openJobs.data.jobs.length > 0)
+    const jobId = openJobs.data.jobs[0]._id
+
+    const propRes = await call('POST', `/jobs/${jobId}/proposals`, tutorToken, { coverLetter: 'I can help', rate: 400 })
+    assert.equal(propRes.status, 403)
+    assert.equal(propRes.data.code, 'EMAIL_NOT_VERIFIED')
+  })
+
+  it('rejects invalid code and tracks failed attempts up to 5', async () => {
+    const email = 'attempts-test@example.com'
+    await call('POST', '/auth/register', null, { name: 'Attempts Test', email, password: 'password123', role: 'student' })
+
+    for (let i = 1; i <= 4; i++) {
+      const res = await call('POST', '/auth/verify-email', null, { email, code: '000000' })
+      assert.equal(res.status, 400)
+      assert.match(res.data.message, /Invalid verification code/)
+    }
+
+    // 5th attempt
+    const res5 = await call('POST', '/auth/verify-email', null, { email, code: '000000' })
+    assert.equal(res5.status, 400)
+    assert.match(res5.data.message, /Too many failed verification attempts/)
+
+    // 6th attempt should also be rejected due to max attempts
+    const res6 = await call('POST', '/auth/verify-email', null, { email, code: '000000' })
+    assert.equal(res6.status, 400)
+    assert.match(res6.data.message, /Too many failed verification attempts/)
+  })
+
+  it('rejects expired verification codes', async () => {
+    const email = 'expired-test@example.com'
+    await call('POST', '/auth/register', null, { name: 'Expired Test', email, password: 'password123', role: 'student' })
+    
+    // Manually expire code in DB
+    await User.updateOne({ email }, { verificationExpires: new Date(Date.now() - 1000) })
+
+    const res = await call('POST', '/auth/verify-email', null, { email, code: '123456' })
+    assert.equal(res.status, 400)
+    assert.match(res.data.message, /expired/)
+  })
+
+  it('enforces 60-second cooldown on resend-code and resets attempts with new code', async () => {
+    const email = 'resend-test@example.com'
+    await call('POST', '/auth/register', null, { name: 'Resend Test', email, password: 'password123', role: 'student' })
+
+    // Immediate resend should trigger 429
+    const cooldownRes = await call('POST', '/auth/resend-code', null, { email })
+    assert.equal(cooldownRes.status, 429)
+    assert.match(cooldownRes.data.message, /Please wait/)
+
+    // Advance verificationLastSentAt past 60s
+    await User.updateOne({ email }, { verificationLastSentAt: new Date(Date.now() - 65000), verificationAttempts: 4 })
+
+    const resendSuccess = await call('POST', '/auth/resend-code', null, { email })
+    assert.equal(resendSuccess.status, 200)
+
+    const user = await User.findOne({ email })
+    assert.equal(user.verificationAttempts, 0) // attempts reset
+    assert.ok(user.verificationExpires > new Date())
+  })
+
+  it('returns 503 and does not update verificationLastSentAt when resend-code email delivery fails', async () => {
+    const email = 'resend-fail@example.com'
+    await call('POST', '/auth/register', null, { name: 'Fail Test', email, password: 'password123', role: 'student' })
+
+    const mailer = require('../lib/mailer')
+    const originalSend = mailer.sendVerificationEmail
+    mailer.sendVerificationEmail = async () => {
+      throw new Error('SMTP connection timed out')
+    }
+
+    try {
+      // Advance cooldown past 60s
+      await User.updateOne({ email }, { verificationLastSentAt: new Date(Date.now() - 65000) })
+
+      const failRes = await call('POST', '/auth/resend-code', null, { email })
+      assert.equal(failRes.status, 503)
+      assert.equal(failRes.data.message, 'We could not send the email right now. Please try again soon.')
+
+      const userAfter = await User.findOne({ email })
+      // verificationLastSentAt was reverted and not set to current time
+      assert.ok(Date.now() - new Date(userAfter.verificationLastSentAt).getTime() > 60000)
+    } finally {
+      mailer.sendVerificationEmail = originalSend
+    }
+  })
+
+  it('successfully verifies email with valid code and unblocks actions', async () => {
+    const email = 'verify-success@example.com'
+    await call('POST', '/auth/register', null, { name: 'Success Test', email, password: 'password123', role: 'student' })
+
+    // Set a known code hash in DB
+    const knownCode = '654321'
+    const codeHash = await bcrypt.hash(knownCode, 10)
+    await User.updateOne({ email }, { verificationCodeHash: codeHash })
+
+    const verifyRes = await call('POST', '/auth/verify-email', null, { email, code: knownCode })
+    assert.equal(verifyRes.status, 200)
+    assert.ok(verifyRes.data.token)
+    assert.equal(verifyRes.data.user.emailVerified, true)
+
+    // User in DB has fields cleared and emailVerified true
+    const user = await User.findOne({ email })
+    assert.equal(user.emailVerified, true)
+    assert.equal(user.verificationCodeHash, undefined)
+    assert.equal(user.verificationExpires, undefined)
+
+    // Post a job now succeeds with verified user token
+    const jobRes = await call('POST', '/jobs', verifyRes.data.token, {
+      title: 'Need Physics Tutor',
+      subject: 'Physics',
+      level: 'secondary',
+      mode: 'online',
+      description: 'Help with exams'
+    })
+    assert.equal(jobRes.status, 201)
+  })
+
+  it('never issues a token when an already-verified user calls verify-email with any or wrong code', async () => {
+    const verifiedUser = await User.findOne({ email: 'meron@lamif.dev' })
+    assert.equal(verifiedUser.emailVerified, true)
+
+    // With a wrong code
+    const wrongRes = await call('POST', '/auth/verify-email', null, { email: 'meron@lamif.dev', code: '999999' })
+    assert.equal(wrongRes.status, 200)
+    assert.equal(wrongRes.data.token, undefined)
+    assert.equal(wrongRes.data.message, 'Email already verified. Please log in.')
+
+    // With any code
+    const anyRes = await call('POST', '/auth/verify-email', null, { email: 'meron@lamif.dev', code: '000000' })
+    assert.equal(anyRes.status, 200)
+    assert.equal(anyRes.data.token, undefined)
+    assert.equal(anyRes.data.message, 'Email already verified. Please log in.')
+  })
+
+  it('allows unverified users to GET messages and notifications without 403, but blocks POST message creation', async () => {
+    const reg = await call('POST', '/auth/register', null, { name: 'Unverified Reader', email: 'unverified-reader@example.com', password: 'password123', role: 'student' })
+    assert.equal(reg.status, 201)
+    const login = await call('POST', '/auth/login', null, { email: 'unverified-reader@example.com', password: 'password123' })
+    const token = login.data.token
+
+    // GET /messages/conversations works without 403
+    const convRes = await call('GET', '/messages/conversations', token)
+    assert.equal(convRes.status, 200)
+    assert.deepEqual(convRes.data.conversations, [])
+
+    // GET /notifications/summary works without 403
+    const notifRes = await call('GET', '/notifications/summary', token)
+    assert.equal(notifRes.status, 200)
+    assert.equal(typeof notifRes.data.unreadMessages, 'number')
+
+    // POST /messages/conversations is blocked
+    const hana = await tutorByName('Hana')
+    const startRes = await call('POST', '/messages/conversations', token, { userId: hana.user._id })
+    assert.equal(startRes.status, 403)
+    assert.equal(startRes.data.code, 'EMAIL_NOT_VERIFIED')
   })
 })
 

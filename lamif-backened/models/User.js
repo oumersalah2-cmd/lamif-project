@@ -25,6 +25,23 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Tutor'
   }],
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+  verificationCodeHash: {
+    type: String
+  },
+  verificationExpires: {
+    type: Date
+  },
+  verificationAttempts: {
+    type: Number,
+    default: 0
+  },
+  verificationLastSentAt: {
+    type: Date
+  },
   createdAt: {
     type: Date,
     default: Date.now

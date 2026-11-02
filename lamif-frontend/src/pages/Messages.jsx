@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Icon from '../components/Icon'
-import api, { errorMessage } from '../lib/api'
+import api, { errorMessage, isUnverifiedError } from '../lib/api'
 import { getUser } from '../lib/session'
 import { formatTime, timeAgo } from '../lib/format'
 
@@ -16,8 +16,12 @@ function Messages() {
   const [error, setError] = useState('')
   const bottomRef = useRef(null)
 
+  const isUnverified = user && user.emailVerified === false
+
   useEffect(() => {
-    const loadList = () => api.get('/messages/conversations').then(res => setConversations(res.data.conversations)).catch(() => {})
+    const loadList = () => api.get('/messages/conversations').then(res => setConversations(res.data.conversations)).catch(err => {
+      if (isUnverifiedError(err)) setError('Please verify your email address.')
+    })
     loadList()
     const timer = setInterval(loadList, POLL_MS)
     return () => clearInterval(timer)
@@ -52,7 +56,11 @@ function Messages() {
       setThread(prev => ({ ...prev, messages: [...prev.messages, res.data.message] }))
     } catch (err) {
       setBody(text)
-      setError(errorMessage(err))
+      if (isUnverifiedError(err)) {
+        setError('Please verify your email address to send messages.')
+      } else {
+        setError(errorMessage(err))
+      }
     }
   }
 
@@ -61,6 +69,14 @@ function Messages() {
   return (
     <div className="page">
       <div className="page-header"><h1>Messages</h1></div>
+      {(isUnverified || isUnverifiedError({ response: { status: 403, data: { message: error } } })) && (
+        <div className="error-text" style={{ padding: '12px 16px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+          <span>Please verify your email address to send messages.</span>
+          <Link to={`/verify-email?email=${encodeURIComponent(user?.email || '')}`} className="btn-primary btn-sm" style={{ textDecoration: 'none' }}>
+            Verify email
+          </Link>
+        </div>
+      )}
       <div className={`messages-layout glass-card ${conversationId ? 'has-thread' : ''}`}>
         <div className="conversation-list">
           {conversations.length === 0 && <p className="empty small">No conversations yet. Message a tutor from their profile.</p>}

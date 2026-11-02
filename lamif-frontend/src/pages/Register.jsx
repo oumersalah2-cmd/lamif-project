@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
 import Icon from '../components/Icon'
 import api, { errorMessage } from '../lib/api'
@@ -11,6 +11,7 @@ const ROLES = [
 
 function Register() {
   const location = useLocation()
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,7 +19,6 @@ function Register() {
     role: location.state?.role || 'student'
   })
   const [message, setMessage] = useState('')
-  const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const handleChange = (e) => {
@@ -28,16 +28,18 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setMessage('')
     try {
-      await api.post('/auth/register', formData)
-      setSuccess(true)
-      setMessage('Account created! Taking you to log in...')
-      setTimeout(() => {
-        window.location.href = '/login'
-      }, 1500)
+      const res = await api.post('/auth/register', formData)
+      navigate('/verify-email', {
+        state: {
+          email: formData.email.trim().toLowerCase(),
+          emailSent: res.data?.emailSent !== false,
+          from: location.state?.from
+        }
+      })
     } catch (error) {
       setMessage(errorMessage(error, 'Connection failed.'))
-    } finally {
       setLoading(false)
     }
   }
@@ -73,7 +75,7 @@ function Register() {
           {loading ? 'Creating account...' : `Sign up as a ${formData.role}`}
         </button>
       </form>
-      {message && <p className={success ? 'success-text' : 'error-text'} style={{ marginTop: '1rem', textAlign: 'center' }}>{message}</p>}
+      {message && <p className="error-text" style={{ marginTop: '1rem', textAlign: 'center' }}>{message}</p>}
       <p className="muted" style={{ marginTop: '2rem', textAlign: 'center' }}>
         Already have an account? <Link to="/login" className="success-text" style={{ fontWeight: 600 }}>Log in</Link>
       </p>

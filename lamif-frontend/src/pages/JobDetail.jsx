@@ -3,24 +3,32 @@ import Icon from '../components/Icon'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import TutorCard from '../components/TutorCard'
 import HireModal from '../components/HireModal'
-import api, { errorMessage } from '../lib/api'
+import api, { errorMessage, isUnverifiedError } from '../lib/api'
 import { getUser } from '../lib/session'
 import { conversationPath } from '../lib/messaging'
 import { budgetText, formatDate, formatMoney, levelLabel, modeLabel, statusLabel, timeAgo } from '../lib/format'
 
 function ProposalForm({ job, onSent }) {
+  const user = getUser()
   const [form, setForm] = useState({ coverLetter: '', rate: job.budgetMax ?? '' })
   const [error, setError] = useState('')
+  const [unverified, setUnverified] = useState(user && user.emailVerified === false)
   const [sending, setSending] = useState(false)
 
   const handleSubmit = async e => {
     e.preventDefault()
     setSending(true)
+    setError('')
     try {
       await api.post(`/jobs/${job._id}/proposals`, form)
       onSent()
     } catch (err) {
-      setError(errorMessage(err))
+      if (isUnverifiedError(err)) {
+        setUnverified(true)
+        setError('Please verify your email address to submit a proposal.')
+      } else {
+        setError(errorMessage(err))
+      }
       setSending(false)
     }
   }
@@ -37,7 +45,20 @@ function ProposalForm({ job, onSent }) {
         <label htmlFor="pr-letter">Cover letter</label>
         <textarea id="pr-letter" rows="6" placeholder="Why you're a great fit, your approach, and when you're available" value={form.coverLetter} onChange={e => setForm({ ...form, coverLetter: e.target.value })} required />
       </div>
-      {error && <p className="error-text">{error}</p>}
+      {(error || unverified) && (
+        <div className="error-text" style={{ padding: '10px 12px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '6px', margin: '12px 0', fontSize: '0.9rem' }}>
+          {unverified ? (
+            <span>
+              Please verify your email address before sending proposals.{' '}
+              <Link to={`/verify-email?email=${encodeURIComponent(user?.email || '')}`} style={{ fontWeight: 600, textDecoration: 'underline' }}>
+                Verify your email
+              </Link>
+            </span>
+          ) : (
+            error
+          )}
+        </div>
+      )}
       <button className="btn-primary btn-sm" disabled={sending}>{sending ? 'Sending...' : 'Send proposal'}</button>
     </form>
   )

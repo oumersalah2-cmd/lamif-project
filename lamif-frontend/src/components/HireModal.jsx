@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import api, { errorMessage } from '../lib/api'
+import { Link } from 'react-router-dom'
+import api, { errorMessage, isUnverifiedError } from '../lib/api'
+import { getUser } from '../lib/session'
 import { DAYS, firstName, formatMoney, modeLabel } from '../lib/format'
 
 const DURATIONS = [1, 1.5, 2, 3]
@@ -11,6 +13,7 @@ const tomorrow = () => {
 
 // Books a tutor directly, or (with `proposal`) hires them from a job proposal at the proposal's rate
 function HireModal({ tutor, proposal, job, onClose, onDone }) {
+  const user = getUser()
   const modes = job && job.mode !== 'either' ? [job.mode] : tutor.teachingModes
   const [form, setForm] = useState({
     subject: job?.subject || tutor.subjects[0] || '',
@@ -21,6 +24,7 @@ function HireModal({ tutor, proposal, job, onClose, onDone }) {
     message: ''
   })
   const [error, setError] = useState('')
+  const [unverified, setUnverified] = useState(user && user.emailVerified === false)
   const [submitting, setSubmitting] = useState(false)
 
   const update = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
@@ -42,7 +46,12 @@ function HireModal({ tutor, proposal, job, onClose, onDone }) {
       }
       onDone()
     } catch (err) {
-      setError(errorMessage(err, 'Could not send the request'))
+      if (isUnverifiedError(err)) {
+        setUnverified(true)
+        setError('Please verify your email address to book a session.')
+      } else {
+        setError(errorMessage(err, 'Could not send the request'))
+      }
       setSubmitting(false)
     }
   }
@@ -114,7 +123,20 @@ function HireModal({ tutor, proposal, job, onClose, onDone }) {
             <p className="small muted" style={{ margin: '6px 0 0' }}>This price is locked for this session, even if the tutor changes their rates later.</p>
           </div>
 
-          {error && <p className="error-text">{error}</p>}
+          {error && (
+            <div className="error-text" style={{ margin: '12px 0', padding: '10px 12px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '6px', fontSize: '0.9rem' }}>
+              {unverified ? (
+                <span>
+                  Please verify your email address to book a session.{' '}
+                  <Link to={`/verify-email?email=${encodeURIComponent(user?.email || '')}`} style={{ fontWeight: 600, textDecoration: 'underline' }}>
+                    Verify your email
+                  </Link>
+                </span>
+              ) : (
+                error
+              )}
+            </div>
+          )}
           <div className="row" style={{ justifyContent: 'flex-end' }}>
             <button type="button" onClick={onClose} className="btn-ghost btn-sm">Cancel</button>
             <button type="submit" className="btn-primary btn-sm" disabled={submitting}>

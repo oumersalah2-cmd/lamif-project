@@ -29,9 +29,11 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.1",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.2",
     "jsonwebtoken": "^9.0.3",
     "mongodb-memory-server": "^11.0.1",
     "mongoose": "^9.4.1",
-    "multer": "^2.1.1"
+    "multer": "^2.1.1",
+    "nodemailer": "^10.3.1"
   }
 }

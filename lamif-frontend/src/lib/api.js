@@ -28,4 +28,10 @@ export const fileUrl = path => (path ? `${API_URL}${path}` : '')
 export const errorMessage = (error, fallback = 'Something went wrong. Please try again.') =>
   error.response?.data?.message || fallback
 
+export const isUnverifiedError = error =>
+  error?.response?.status === 403 &&
+  (error.response?.data?.code === 'EMAIL_NOT_VERIFIED' ||
+    /verify.*email/i.test(error.response?.data?.message || ''))
+
 export default api
+

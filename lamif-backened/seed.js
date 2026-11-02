@@ -22,7 +22,7 @@ async function seed() {
   }
 
   const password = await bcrypt.hash(DEMO_PASSWORD, 10)
-  const makeUser = (name, email, role) => ({ name, email, role, password })
+  const makeUser = (name, email, role) => ({ name, email, role, password, emailVerified: true })
 
   const [, abebe, hana, dawit, sara, student1, student2, student3] = await User.create([
     makeUser('LAMIF Admin', 'admin@lamif.dev', 'admin'),

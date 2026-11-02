@@ -5,7 +5,7 @@ import Icon from '../components/Icon'
 import TutorBadges from '../components/TutorBadges'
 import HireModal from '../components/HireModal'
 import { StarRating } from '../components/StarRating'
-import api, { errorMessage, fileUrl } from '../lib/api'
+import api, { errorMessage, fileUrl, isUnverifiedError } from '../lib/api'
 import { getUser } from '../lib/session'
 import { conversationPath } from '../lib/messaging'
 import useSavedTutors from '../lib/useSavedTutors'
@@ -45,7 +45,35 @@ function TutorProfile() {
   const canBook = !user || user.role === 'student'
 
   const requireLogin = action => () => (user ? action() : navigate('/login', { state: { from: `/tutors/${id}` } }))
-  const message = requireLogin(async () => navigate(await conversationPath(tutor.user._id)))
+  const message = requireLogin(async () => {
+    if (user && user.emailVerified === false) {
+      setNotice(
+        <span>
+          Please verify your email address to message tutors.{' '}
+          <Link to={`/verify-email?email=${encodeURIComponent(user.email || '')}`} style={{ fontWeight: 600, textDecoration: 'underline' }}>
+            Verify your email
+          </Link>
+        </span>
+      )
+      return
+    }
+    try {
+      navigate(await conversationPath(tutor.user._id))
+    } catch (err) {
+      if (isUnverifiedError(err)) {
+        setNotice(
+          <span>
+            Please verify your email address to message tutors.{' '}
+            <Link to={`/verify-email?email=${encodeURIComponent(user?.email || '')}`} style={{ fontWeight: 600, textDecoration: 'underline' }}>
+              Verify your email
+            </Link>
+          </span>
+        )
+      } else {
+        setNotice(errorMessage(err))
+      }
+    }
+  })
 
   const slotsByDay = DAYS.map((day, index) => ({ day, slots: tutor.availability.filter(s => s.day === index) }))
     .filter(d => d.slots.length > 0)

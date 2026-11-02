@@ -5,6 +5,7 @@ const Conversation = require('../models/Conversation')
 const Message = require('../models/Message')
 const User = require('../models/User')
 const protect = require('../middleware/authMiddleware')
+const requireVerified = require('../middleware/requireVerified')
 const httpError = require('../lib/httpError')
 
 router.use(protect)
@@ -42,7 +43,7 @@ router.get('/conversations', async (req, res) => {
 })
 
 // Find or start the conversation with another user
-router.post('/conversations', async (req, res) => {
+router.post('/conversations', requireVerified, async (req, res) => {
   const { userId } = req.body
   if (userId === req.user.id) throw httpError(400, 'You cannot message yourself')
   const other = await User.findById(userId)
@@ -61,7 +62,7 @@ router.get('/conversations/:id', async (req, res) => {
   res.json({ conversation: { _id: conversation._id, other: otherParticipant(conversation, req.user.id) }, messages })
 })
 
-router.post('/conversations/:id', async (req, res) => {
+router.post('/conversations/:id', requireVerified, async (req, res) => {
   const conversation = await myConversation(req)
   const message = await Message.create({ conversation: conversation._id, sender: req.user.id, body: req.body.body })
   conversation.lastMessage = message.body.slice(0, 140)

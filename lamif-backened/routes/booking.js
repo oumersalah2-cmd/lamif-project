@@ -5,6 +5,7 @@ const Tutor = require('../models/Tutor')
 const Review = require('../models/Review')
 const protect = require('../middleware/authMiddleware')
 const requireRole = require('../middleware/requireRole')
+const requireVerified = require('../middleware/requireVerified')
 const httpError = require('../lib/httpError')
 const notify = require('../lib/notify')
 const createBooking = require('../lib/createBooking')
@@ -32,7 +33,7 @@ async function present(bookings, side) {
   }))
 }
 
-router.post('/hire', protect, requireRole('student'), async (req, res) => {
+router.post('/hire', protect, requireRole('student'), requireVerified, async (req, res) => {
   const { tutorId, subject, message, mode = 'online', startUtc, endUtc } = req.body
 
   const tutor = await Tutor.findById(tutorId)

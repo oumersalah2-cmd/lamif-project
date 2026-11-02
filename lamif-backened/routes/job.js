@@ -6,6 +6,7 @@ const Tutor = require('../models/Tutor')
 const protect = require('../middleware/authMiddleware')
 const optionalAuth = require('../middleware/optionalAuth')
 const requireRole = require('../middleware/requireRole')
+const requireVerified = require('../middleware/requireVerified')
 const httpError = require('../lib/httpError')
 const notify = require('../lib/notify')
 const { withTutorStats } = require('../lib/tutorStats')
@@ -27,7 +28,7 @@ const withCounts = async jobs => {
   return jobs.map(job => ({ ...job.toObject(), proposalCount: counts.get(String(job._id)) || 0 }))
 }
 
-router.post('/', protect, requireRole('student'), async (req, res) => {
+router.post('/', protect, requireRole('student'), requireVerified, async (req, res) => {
   const { title, description, subject, level, mode, budgetMin, budgetMax, location } = req.body
   const job = await Job.create({
     student: req.user.id,
@@ -98,7 +99,7 @@ router.put('/:id/close', protect, requireRole('student'), async (req, res) => {
   res.json({ message: 'Job closed', job })
 })
 
-router.post('/:id/proposals', protect, requireRole('tutor'), async (req, res) => {
+router.post('/:id/proposals', protect, requireRole('tutor'), requireVerified, async (req, res) => {
   const { coverLetter, rate } = req.body
 
   const job = await Job.findById(req.params.id)

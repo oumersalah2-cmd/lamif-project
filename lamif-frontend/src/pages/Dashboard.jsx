@@ -107,6 +107,18 @@ function Dashboard() {
         </div>
       </div>
 
+      {user && user.emailVerified === false && (
+        <div className="glass-card card" style={{ background: 'rgba(234, 179, 8, 0.12)', border: '1px solid #eab308', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <strong style={{ display: 'block', color: 'var(--text)' }}>Verify your email address</strong>
+            <span className="muted small">Please verify your email to book sessions, post jobs, submit proposals, and message other users.</span>
+          </div>
+          <Link to={`/verify-email?email=${encodeURIComponent(user.email || '')}`} className="btn-primary btn-sm">
+            Verify now
+          </Link>
+        </div>
+      )}
+
       {user.role === 'tutor' ? (
         <>
           <div className="glass-card card row-between" style={{ marginBottom: '20px' }}>

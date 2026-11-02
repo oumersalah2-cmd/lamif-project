@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Register from './pages/Register'
 import Login from './pages/Login'
+import VerifyEmail from './pages/VerifyEmail'
 import Dashboard from './pages/Dashboard'
 import BrowseTutors from './pages/BrowseTutors'
 import TutorProfile from './pages/TutorProfile'
@@ -33,6 +34,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
 
         <Route element={<AppLayout />}>
           <Route path="/browse-tutors" element={<BrowseTutors />} />
