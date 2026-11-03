@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
 import Icon from '../components/Icon'
 import api, { errorMessage } from '../lib/api'
@@ -11,7 +11,6 @@ const ROLES = [
 
 function Register() {
   const location = useLocation()
-  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,6 +19,7 @@ function Register() {
   })
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [registered, setRegistered] = useState(false)
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -30,16 +30,12 @@ function Register() {
     setLoading(true)
     setMessage('')
     try {
-      const res = await api.post('/auth/register', formData)
-      navigate('/verify-email', {
-        state: {
-          email: formData.email.trim().toLowerCase(),
-          emailSent: res.data?.emailSent !== false,
-          from: location.state?.from
-        }
-      })
+      await api.post('/auth/register', formData)
+      setRegistered(true)
+      setMessage(`Account created! We sent a verification link to ${formData.email.trim()}. Open it to activate your account, then log in.`)
     } catch (error) {
       setMessage(errorMessage(error, 'Connection failed.'))
+    } finally {
       setLoading(false)
     }
   }
@@ -71,11 +67,11 @@ function Register() {
         <input id="reg-email" type="email" name="email" placeholder="you@example.com" autoComplete="email" value={formData.email} onChange={handleChange} required />
         <label className="field-label" htmlFor="reg-password">Password</label>
         <input id="reg-password" type="password" name="password" placeholder="At least 6 characters" autoComplete="new-password" minLength={6} value={formData.password} onChange={handleChange} required />
-        <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '0.5rem' }} disabled={loading}>
+        <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '0.5rem' }} disabled={loading || registered}>
           {loading ? 'Creating account...' : `Sign up as a ${formData.role}`}
         </button>
       </form>
-      {message && <p className="error-text" style={{ marginTop: '1rem', textAlign: 'center' }}>{message}</p>}
+      {message && <p className={registered ? 'success-text' : 'error-text'} style={{ marginTop: '1rem', textAlign: 'center' }}>{message}</p>}
       <p className="muted" style={{ marginTop: '2rem', textAlign: 'center' }}>
         Already have an account? <Link to="/login" className="success-text" style={{ fontWeight: 600 }}>Log in</Link>
       </p>

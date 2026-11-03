@@ -1,7 +1,8 @@
 {
   "name": "lamif-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Modern React 19 and Three.js frontend for LAMIF Educational Marketplace",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -1,20 +1,34 @@
 {
   "name": "lamif",
   "version": "1.0.0",
-  "description": "",
+  "description": "Ethiopia's Premier Marketplace & Booking Platform for Tutors and Students (MERN Stack + Three.js)",
   "main": "index.js",
   "scripts": {
     "dev": "concurrently \"npm start --prefix lamif-backened\" \"npm run dev --prefix lamif-frontend\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "install:all": "npm install && npm install --prefix lamif-backened && npm install --prefix lamif-frontend",
+    "test": "npm test --prefix lamif-backened",
+    "build": "npm run build --prefix lamif-frontend",
+    "lint": "npm run lint --prefix lamif-frontend"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/oumersalah2-cmd/lamif-project.git"
   },
-  "keywords": [],
+  "keywords": [
+    "marketplace",
+    "mern-stack",
+    "react",
+    "node",
+    "express",
+    "mongodb",
+    "threejs",
+    "tutoring-platform",
+    "booking-system",
+    "freelance-marketplace",
+    "proposals-bidding"
+  ],
   "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/oumersalah2-cmd/lamif-project/issues"
   },

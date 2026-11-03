@@ -12,9 +12,14 @@ function Login() {
   })
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [needsVerification, setNeedsVerification] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resendMessage, setResendMessage] = useState('')
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
+    setNeedsVerification(false)
+    setResendMessage('')
   }
 
   const handleSubmit = async (e) => {
@@ -27,8 +32,22 @@ function Login() {
       window.location.href = location.state?.from || home
     } catch (error) {
       setMessage(errorMessage(error, 'Connection failed. Please check your internet.'))
+      setNeedsVerification(error.response?.data?.code === 'EMAIL_NOT_VERIFIED')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleResend = async () => {
+    setResending(true)
+    setResendMessage('')
+    try {
+      await api.post('/auth/resend-verification', { email: formData.email.trim().toLowerCase() })
+      setResendMessage('Verification email sent. Check your inbox.')
+    } catch (error) {
+      setMessage(errorMessage(error, 'Could not resend verification email. Please try again.'))
+    } finally {
+      setResending(false)
     }
   }
 
@@ -64,6 +83,18 @@ function Login() {
         </button>
       </form>
       {message && <p className="error-text" style={{ marginTop: '1rem', textAlign: 'center' }}>{message}</p>}
+      {needsVerification && (
+        <button
+          type="button"
+          className="btn-ghost"
+          style={{ width: '100%', marginTop: '1rem' }}
+          onClick={handleResend}
+          disabled={resending}
+        >
+          {resending ? 'Sending...' : 'Resend verification email'}
+        </button>
+      )}
+      {resendMessage && <p className="success-text" style={{ marginTop: '1rem', textAlign: 'center' }}>{resendMessage}</p>}
       <p className="muted" style={{ marginTop: '2rem', textAlign: 'center' }}>
         New to <span className="brand-stylish">LAMIF</span>? <Link to="/register" className="success-text" style={{ fontWeight: 600 }}>Join <span className="brand-stylish">LAMIF</span></Link>
       </p>
