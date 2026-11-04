@@ -49,7 +49,21 @@ app.get('/', (req, res) => {
 })
 
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok' })
+  res.status(200).json({
+    status: 'ok',
+    env: {
+      NODE_ENV: process.env.NODE_ENV || '(not set)',
+      SMTP_HOST: process.env.SMTP_HOST ? '✅ set' : '❌ missing',
+      SMTP_PORT: process.env.SMTP_PORT || '(not set)',
+      SMTP_SECURE: process.env.SMTP_SECURE || '(not set)',
+      SMTP_USER: process.env.SMTP_USER ? '✅ set' : '❌ missing',
+      SMTP_PASS: process.env.SMTP_PASS ? '✅ set' : '❌ missing',
+      MAIL_FROM: process.env.MAIL_FROM || '(not set)',
+      CLIENT_URL: process.env.CLIENT_URL || '(not set)',
+      MONGO_URI: process.env.MONGO_URI ? '✅ set' : '❌ missing',
+      JWT_SECRET: process.env.JWT_SECRET ? '✅ set' : '❌ missing'
+    }
+  })
 })
 
 app.use('/api/auth', authRoutes)
