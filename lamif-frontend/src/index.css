@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&family=Outfit:wght@700;800&display=swap');
 
 /* =================== TOKENS =================== */
 :root {
@@ -62,7 +62,7 @@ body.dark-mode {
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', 'Noto Sans Ethiopic', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-main);
   color: var(--text-main);
   line-height: 1.6;
@@ -73,7 +73,7 @@ body {
 }
 
 h1, h2, h3, h4 {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', 'Noto Sans Ethiopic', system-ui, -apple-system, sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -266,6 +266,47 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important;
 .theme-switch.is-dark .theme-switch-knob {
   transform: translateX(28px);
   background: linear-gradient(135deg, #34d399, #047857);
+}
+
+/* =================== LANGUAGE SWITCHER =================== */
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--input-bg);
+  color: var(--text-main);
+  font-family: 'Inter', 'Noto Sans Ethiopic', system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+  flex-shrink: 0;
+}
+.lang-switch:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.lang-switch .lang-icon {
+  color: var(--primary-strong);
+  margin-right: 1px;
+}
+.lang-switch .lang-active {
+  color: var(--primary-strong);
+  font-weight: 800;
+}
+.lang-switch .lang-inactive {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+.lang-switch .lang-divider {
+  color: var(--border-strong);
+  font-weight: 400;
+  opacity: 0.5;
 }
 
 .icon-btn {

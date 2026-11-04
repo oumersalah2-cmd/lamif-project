@@ -4,9 +4,11 @@ import AuthLayout from '../components/AuthLayout'
 import Icon from '../components/Icon'
 import api, { errorMessage } from '../lib/api'
 import { saveSession } from '../lib/session'
+import { useLanguage } from '../lib/LanguageContext'
 
 function Login() {
   const location = useLocation()
+  const { t } = useLanguage()
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -44,7 +46,7 @@ function Login() {
     setResendMessage('')
     try {
       await api.post('/auth/resend-verification', { email: formData.email.trim().toLowerCase() })
-      setResendMessage('Verification email sent. Check your inbox.')
+      setResendMessage(t('auth.spamNoticeText'))
     } catch (error) {
       setMessage(errorMessage(error, 'Could not resend verification email. Please try again.'))
     } finally {
@@ -54,10 +56,13 @@ function Login() {
 
   return (
     <AuthLayout>
-      <h1>Welcome back</h1>
-      <p className="muted" style={{ marginTop: 0, marginBottom: '28px' }}>Log in to continue learning and teaching on <span className="brand-stylish">LAMIF</span>.</p>
+      <h1>{t('auth.welcomeBack')}</h1>
+      <p className="muted" style={{ marginTop: 0, marginBottom: '28px' }}>
+        {t('auth.loginSubtitle')}
+      </p>
+
       <form onSubmit={handleSubmit}>
-        <label className="field-label" htmlFor="login-email">Email</label>
+        <label className="field-label" htmlFor="login-email">{t('auth.email')}</label>
         <input
           id="login-email"
           type="email"
@@ -68,22 +73,24 @@ function Login() {
           onChange={handleChange}
           required
         />
-        <label className="field-label" htmlFor="login-password">Password</label>
+        <label className="field-label" htmlFor="login-password">{t('auth.password')}</label>
         <input
           id="login-password"
           type="password"
           name="password"
-          placeholder="Your password"
+          placeholder="••••••••"
           autoComplete="current-password"
           value={formData.password}
           onChange={handleChange}
           required
         />
         <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '0.5rem' }} disabled={loading}>
-          {loading ? 'Logging in...' : 'Log in'}
+          {loading ? t('auth.loggingIn') : t('auth.loginBtn')}
         </button>
       </form>
+
       {message && <p className="error-text" style={{ marginTop: '1rem', textAlign: 'center' }}>{message}</p>}
+
       {needsVerification && (
         <div
           className="glass-card"
@@ -111,10 +118,10 @@ function Login() {
             <Icon name="mail" size={22} strokeWidth={2.5} />
           </div>
           <p style={{ margin: '0 0 6px', fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-            Account Not Verified Yet
+            {t('auth.accountNotVerified')}
           </p>
           <p style={{ margin: '0 0 12px', fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: 1.45 }}>
-            We sent a verification link to <strong>{formData.email.trim()}</strong>.
+            {t('auth.checkInboxNote')} <strong>{formData.email.trim()}</strong>.
           </p>
 
           <div style={{
@@ -129,9 +136,9 @@ function Login() {
             lineHeight: 1.4
           }}>
             <strong style={{ display: 'block', fontWeight: 800, color: 'var(--text-main)', marginBottom: '2px' }}>
-              📁 Check your Spam / Junk folder!
+              {t('auth.spamNoticeTitle')}
             </strong>
-            <span>Verification emails can sometimes land in spam or promotions.</span>
+            <span>{t('auth.spamNoticeText')}</span>
           </div>
 
           <button
@@ -141,13 +148,18 @@ function Login() {
             onClick={handleResend}
             disabled={resending}
           >
-            {resending ? 'Sending...' : 'Resend Verification Email'}
+            {resending ? t('auth.resending') : t('auth.resendBtn')}
           </button>
         </div>
       )}
+
       {resendMessage && <p className="success-text" style={{ marginTop: '1rem', textAlign: 'center' }}>{resendMessage}</p>}
+
       <p className="muted" style={{ marginTop: '2rem', textAlign: 'center' }}>
-        New to <span className="brand-stylish">LAMIF</span>? <Link to="/register" className="success-text" style={{ fontWeight: 600 }}>Join <span className="brand-stylish">LAMIF</span></Link>
+        {t('auth.newToLamif')}{' '}
+        <Link to="/register" className="success-text" style={{ fontWeight: 600 }}>
+          {t('auth.joinLamif')}
+        </Link>
       </p>
     </AuthLayout>
   )

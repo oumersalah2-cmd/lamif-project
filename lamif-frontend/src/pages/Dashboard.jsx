@@ -6,6 +6,7 @@ import TutorBadges from '../components/TutorBadges'
 import api from '../lib/api'
 import { getUser } from '../lib/session'
 import { firstName, formatMoney } from '../lib/format'
+import { useLanguage } from '../lib/LanguageContext'
 
 const OPEN = ['requested', 'pending']
 const ACTIVE = ['accepted', 'paid', 'in_progress']
@@ -38,6 +39,7 @@ function StatTile({ value, label }) {
 function Dashboard() {
   const user = getUser()
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [bookings, setBookings] = useState([])
   const [profile, setProfile] = useState(null)
   const [needsProfile, setNeedsProfile] = useState(false)
@@ -80,7 +82,16 @@ function Dashboard() {
     )
   }
 
-  const tabs = TABS[user.role]
+  const tabs = user.role === 'tutor' ? [
+    ['requests', t('dash.tab.requests'), b => OPEN.includes(b.status)],
+    ['active', t('dash.tab.contracts'), b => ACTIVE.includes(b.status)],
+    ['history', t('dash.tab.history'), b => [...DONE, 'cancelled', 'rejected'].includes(b.status)]
+  ] : [
+    ['active', t('dash.tab.upcoming'), b => [...OPEN, ...ACTIVE].includes(b.status)],
+    ['review', t('dash.tab.toReview'), b => b.status === 'completed'],
+    ['history', t('dash.tab.history'), b => [...DONE, 'cancelled', 'rejected'].includes(b.status)]
+  ]
+
   const tab = chosenTab || (tabs.find(([, , filter]) => bookings.some(filter)) || tabs[0])[0]
   const visible = bookings.filter(tabs.find(([key]) => key === tab)[2])
   const countFor = filter => bookings.filter(filter).length
@@ -89,19 +100,19 @@ function Dashboard() {
     <div className="page">
       <div className="page-header">
         <div>
-          <p className="eyebrow">{user.role === 'tutor' ? 'Tutor dashboard' : 'Student dashboard'}</p>
-          <h1>Welcome back, {firstName(user.name)}!</h1>
+          <p className="eyebrow">{user.role === 'tutor' ? t('dash.tutorPortal') : t('dash.studentPortal')}</p>
+          <h1>{t('dash.welcome')} {firstName(user.name)}!</h1>
         </div>
         <div className="row">
           {user.role === 'student' ? (
             <>
-              <button className="btn-ghost btn-sm" onClick={() => navigate('/jobs/new')}>Post a job</button>
-              <button className="btn-primary btn-sm" onClick={() => navigate('/browse-tutors')}>Find tutors</button>
+              <button className="btn-ghost btn-sm" onClick={() => navigate('/jobs/new')}>{t('dash.postJob')}</button>
+              <button className="btn-primary btn-sm" onClick={() => navigate('/browse-tutors')}>{t('dash.findTutors')}</button>
             </>
           ) : (
             <>
-              <Link className="btn-ghost btn-sm" style={{ textDecoration: 'none' }} to={`/tutors/${profile._id}`}>View public profile</Link>
-              <button className="btn-primary btn-sm" onClick={() => navigate('/jobs')}>Find work</button>
+              <Link className="btn-ghost btn-sm" style={{ textDecoration: 'none' }} to={`/tutors/${profile._id}`}>{t('dash.viewPublicProfile')}</Link>
+              <button className="btn-primary btn-sm" onClick={() => navigate('/jobs')}>{t('dash.findWork')}</button>
             </>
           )}
         </div>
@@ -110,11 +121,11 @@ function Dashboard() {
       {user && user.emailVerified === false && (
         <div className="glass-card card" style={{ background: 'rgba(234, 179, 8, 0.12)', border: '1px solid #eab308', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <strong style={{ display: 'block', color: 'var(--text)' }}>Verify your email address</strong>
-            <span className="muted small">Please verify your email to book sessions, post jobs, submit proposals, and message other users.</span>
+            <strong style={{ display: 'block', color: 'var(--text)' }}>{t('dash.verifyNoticeTitle')}</strong>
+            <span className="muted small">{t('dash.verifyNoticeDesc')}</span>
           </div>
           <Link to={`/verify-email?email=${encodeURIComponent(user.email || '')}`} className="btn-primary btn-sm">
-            Verify now
+            {t('dash.verifyNow')}
           </Link>
         </div>
       )}
@@ -126,19 +137,19 @@ function Dashboard() {
             <span className="small muted">Profile: {profile.verificationStatus === 'approved' ? 'Verified' : profile.verificationStatus === 'pending' ? 'Pending verification' : 'Not approved'}</span>
           </div>
           <div className="stat-grid">
-            <StatTile value={formatMoney(sum(bookings.filter(b => DONE.includes(b.status))))} label="Earned (completed)" />
-            <StatTile value={formatMoney(sum(bookings.filter(b => ACTIVE.includes(b.status))))} label="In active contracts" />
-            <StatTile value={profile.stats.jobSuccessScore != null ? `${profile.stats.jobSuccessScore}%` : '—'} label="Job Success Score" />
-            <StatTile value={profile.stats.averageRating != null ? `${profile.stats.averageRating} ★` : '—'} label={`Rating (${profile.stats.reviewCount} reviews)`} />
-            <StatTile value={`${profile.stats.activeStudents}/${profile.maxActiveStudents}`} label="Active students" />
+            <StatTile value={formatMoney(sum(bookings.filter(b => DONE.includes(b.status))))} label={t('dash.earnedCompleted')} />
+            <StatTile value={formatMoney(sum(bookings.filter(b => ACTIVE.includes(b.status))))} label={t('dash.activeContracts')} />
+            <StatTile value={profile.stats.jobSuccessScore != null ? `${profile.stats.jobSuccessScore}%` : '—'} label={t('dash.jobSuccess')} />
+            <StatTile value={profile.stats.averageRating != null ? `${profile.stats.averageRating} ★` : '—'} label={`${t('stats.rating')} (${profile.stats.reviewCount})`} />
+            <StatTile value={`${profile.stats.activeStudents}/${profile.maxActiveStudents}`} label={t('dash.activeStudents')} />
           </div>
         </>
       ) : (
         <div className="stat-grid">
-          <StatTile value={countFor(b => ACTIVE.includes(b.status))} label="Active bookings" />
-          <StatTile value={countFor(b => OPEN.includes(b.status))} label="Awaiting tutor" />
-          <StatTile value={countFor(b => DONE.includes(b.status))} label="Sessions completed" />
-          <StatTile value={formatMoney(sum(bookings.filter(b => [...DONE, 'paid', 'in_progress'].includes(b.status))))} label="Total spent" />
+          <StatTile value={countFor(b => ACTIVE.includes(b.status))} label={t('dash.activeBookings')} />
+          <StatTile value={countFor(b => OPEN.includes(b.status))} label={t('dash.awaitingTutor')} />
+          <StatTile value={countFor(b => DONE.includes(b.status))} label={t('dash.sessionsCompleted')} />
+          <StatTile value={formatMoney(sum(bookings.filter(b => [...DONE, 'paid', 'in_progress'].includes(b.status))))} label={t('dash.totalSpent')} />
         </div>
       )}
 
@@ -153,8 +164,8 @@ function Dashboard() {
       {visible.length === 0 ? (
         <div className="glass-card empty">
           {user.role === 'student'
-            ? <p>Nothing here yet. <Link className="success-text" to="/browse-tutors">Find a tutor</Link> or <Link className="success-text" to="/jobs/new">post a job</Link> and let tutors come to you.</p>
-            : <p>Nothing here yet. Keep your profile and availability up to date, and <Link className="success-text" to="/jobs">browse open jobs</Link>.</p>}
+            ? <p>{t('dash.emptyStudent')} <Link className="success-text" to="/browse-tutors">{t('dash.findTutors')}</Link> or <Link className="success-text" to="/jobs/new">{t('dash.postJob')}</Link>.</p>
+            : <p>{t('dash.emptyTutor')} <Link className="success-text" to="/jobs">{t('dash.findWork')}</Link>.</p>}
         </div>
       ) : (
         <div className="grid-cards">

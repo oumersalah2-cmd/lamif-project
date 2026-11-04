@@ -3,10 +3,12 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
 import Icon from '../components/Icon'
 import api, { errorMessage } from '../lib/api'
+import { useLanguage } from '../lib/LanguageContext'
 
 function VerifyEmail() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { t } = useLanguage()
 
   const emailParam = (searchParams.get('email') || '').trim()
   const tokenParam = (searchParams.get('token') || '').trim()
@@ -34,14 +36,14 @@ function VerifyEmail() {
 
     api.post('/auth/verify-email', { token: tokenParam })
       .then(response => {
-        setMessage(response.data.message || 'Email verified successfully! You can now log in.')
+        setMessage(response.data.message || t('verify.successDesc'))
         setIsVerified(true)
       })
       .catch(err => {
         setError(errorMessage(err, 'This verification link is invalid or has expired.'))
       })
       .finally(() => setLoading(false))
-  }, [isEmailClick, tokenParam])
+  }, [isEmailClick, tokenParam, t])
 
   // 2. Real-time check if verified (auto-detects if user clicks link in another tab or mobile)
   useEffect(() => {
@@ -81,7 +83,7 @@ function VerifyEmail() {
     setError('')
     try {
       await api.post('/auth/resend-verification', { email })
-      setResendNotice('Verification email resent! Please check your inbox and spam folder.')
+      setResendNotice(t('verify.spamText'))
       setResendCooldown(60)
     } catch (err) {
       setError(errorMessage(err, 'Failed to resend verification email. Please try again.'))
@@ -111,10 +113,10 @@ function VerifyEmail() {
           </div>
 
           <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '8px', color: 'var(--text-main)' }}>
-            {loading ? 'Verifying Your Email...' : isVerified ? 'Email Verified!' : 'Verification Status'}
+            {loading ? t('verify.verifying') : isVerified ? t('verify.successTitle') : t('verify.title')}
           </h1>
 
-          {loading && <p className="muted" style={{ fontWeight: 600 }}>Checking verification link...</p>}
+          {loading && <p className="muted" style={{ fontWeight: 600 }}>{t('verify.checking')}</p>}
           {!loading && message && (
             <p className="success-text" style={{ fontSize: '1.05rem', fontWeight: 700, margin: '16px 0' }}>
               {message}
@@ -129,7 +131,7 @@ function VerifyEmail() {
           {!loading && (
             <p style={{ marginTop: '2rem' }}>
               <Link to="/login" className="btn-primary" style={{ width: '100%', textDecoration: 'none', fontWeight: 700 }}>
-                Proceed to Log in
+                {t('verify.proceed')}
               </Link>
             </p>
           )}
@@ -167,20 +169,20 @@ function VerifyEmail() {
             <Icon name="check" size={30} strokeWidth={2.5} />
           </div>
           <h2 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '0 0 8px', color: 'var(--text-main)' }}>
-            Account Verified!
+            {t('verify.successTitle')}
           </h2>
           <p style={{ margin: '0 0 16px', fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>
-            Your email has been successfully verified.
+            {t('verify.successDesc')}
           </p>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-            Redirecting to login in a moment...
+            {t('verify.redirecting')}
           </p>
           <Link
             to="/login"
             className="btn-primary"
             style={{ display: 'inline-flex', marginTop: '18px', textDecoration: 'none', fontWeight: 700 }}
           >
-            Log in now
+            {t('verify.loginNow')}
           </Link>
         </div>
       </AuthLayout>
@@ -207,10 +209,10 @@ function VerifyEmail() {
         </div>
 
         <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '8px', color: 'var(--text-main)' }}>
-          Verify Your Email
+          {t('verify.title')}
         </h1>
         <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-main)', fontWeight: 500 }}>
-          We've sent a verification link to:
+          {t('verify.sentTo')}
         </p>
         {email && (
           <div style={{
@@ -243,7 +245,7 @@ function VerifyEmail() {
           color: 'var(--text-main)',
           lineHeight: 1.55
         }}>
-          Please open your inbox and click the verification link to activate your account.
+          {t('verify.instruction')}
         </p>
 
         {/* BOLD SPAM FOLDER NOTICE */}
@@ -261,11 +263,9 @@ function VerifyEmail() {
           <span style={{ fontSize: '1.35rem', lineHeight: 1 }} aria-hidden="true">📁</span>
           <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: 1.5 }}>
             <strong style={{ display: 'block', fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '3px' }}>
-              Check your Spam / Junk folder!
+              {t('verify.spamTitle')}
             </strong>
-            <span>
-              If you don't see the email within 1–2 minutes, please <strong>check your Spam or Junk folder</strong> and mark the message as <strong>&ldquo;Not Spam&rdquo;</strong>.
-            </span>
+            <span>{t('verify.spamText')}</span>
           </div>
         </div>
 
@@ -284,10 +284,10 @@ function VerifyEmail() {
           }}
         >
           {resending
-            ? 'Resending email...'
+            ? t('verify.resendingBtn')
             : resendCooldown > 0
-            ? `Resend email in ${resendCooldown}s`
-            : 'Resend Verification Email'}
+            ? `${t('verify.cooldown')} ${resendCooldown}s`
+            : t('verify.resendBtn')}
         </button>
 
         {resendNotice && (
@@ -303,9 +303,9 @@ function VerifyEmail() {
       </div>
 
       <p className="muted" style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.92rem', fontWeight: 500 }}>
-        Already verified?{' '}
+        {t('verify.alreadyVerified')}{' '}
         <Link to="/login" className="success-text" style={{ fontWeight: 700 }}>
-          Log in
+          {t('verify.logIn')}
         </Link>
       </p>
     </AuthLayout>

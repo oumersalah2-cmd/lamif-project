@@ -2,16 +2,28 @@ import Logo from './Logo'
 import GeodesicGlobe3D from './GeodesicGlobe3D'
 import Icon from './Icon'
 import ThemeToggle from './ThemeToggle'
+import LanguageToggle from './LanguageToggle'
+import { useLanguage } from '../lib/LanguageContext'
 
-const POINTS = [
-  'Verified tutors with real, platform-generated reviews',
-  'Online or in-person sessions, from Grade 1 to university',
-  'Prices locked the moment you book',
-  'Post a job and let tutors send you proposals'
-]
+const BRAND_POINTS = {
+  en: [
+    'Verified educators with authenticated student evaluations',
+    'Tailored virtual & in-person instruction from primary to university',
+    'Transparent rates locked firmly the moment you reserve',
+    'Post custom learning requests and receive competitive proposals'
+  ],
+  am: [
+    'ትክክለኛ የትምህርት ማስረጃቸው የተረጋገጠ ብቁ አስተማሪዎች',
+    'ከመጀመሪያ ደረጃ እስከ ዩኒቨርሲቲ በኦንላይን ወይም በአካል የመማር አማራጭ',
+    'በቦታ ማስያዣው ቅጽበት የተረጋገጠ ቋሚና ግልጽ ዋጋ',
+    'የሚፈልጉትን የትምህርት ጥያቄ ለጥፈው ብቁ መምህራንን ያግኙ'
+  ]
+}
 
-// Split screen: brand story on the left, the form on the right
 function AuthLayout({ children }) {
+  const { lang, t } = useLanguage()
+  const points = BRAND_POINTS[lang] || BRAND_POINTS.en
+
   return (
     <div className="auth-shell">
       <aside className="auth-brand">
@@ -20,19 +32,29 @@ function AuthLayout({ children }) {
         </div>
         <Logo size={36} />
         <div>
-          <h2>Ethiopia's marketplace for learning.</h2>
+          <h2>
+            {lang === 'am'
+              ? 'የኢትዮጵያ ቀዳሚ የትምህርትና ሙያ ማዕከል።'
+              : 'Ethiopia\'s Premier Marketplace for Academic Excellence.'}
+          </h2>
           <ul>
-            {POINTS.map(point => (
+            {points.map(point => (
               <li key={point}><Icon name="check" size={18} />{point}</li>
             ))}
           </ul>
         </div>
-        <p style={{ margin: 0, color: 'rgba(233, 244, 238, 0.6)', fontSize: '0.85rem' }}>© {new Date().getFullYear()} LAMIF Educational Platform</p>
+        <p style={{ margin: 0, color: 'rgba(233, 244, 238, 0.6)', fontSize: '0.85rem' }}>
+          © {new Date().getFullYear()} LAMIF Educational Platform. {t('footer.madeFor')}
+        </p>
       </aside>
+
       <main className="auth-container">
         <div className="auth-top">
           <span className="auth-mobile-logo"><Logo size={30} /></span>
-          <ThemeToggle />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <LanguageToggle />
+            <ThemeToggle />
+          </div>
         </div>
         <div className="auth-panel">
           <div className="auth-mobile-3d-hero" aria-hidden="true">

@@ -7,64 +7,36 @@ import TutorBadges from '../components/TutorBadges'
 import { StarRating } from '../components/StarRating'
 import Logo from '../components/Logo'
 import GeodesicGlobe3D from '../components/GeodesicGlobe3D'
+import LanguageToggle from '../components/LanguageToggle'
 import api from '../lib/api'
 import { getUser } from '../lib/session'
 import { formatMoney, startingRate } from '../lib/format'
+import { useLanguage } from '../lib/LanguageContext'
 
-const POPULAR = ['Mathematics', 'Physics', 'English', 'IELTS', 'Programming', 'Chemistry']
+const POPULAR_EN = ['Mathematics', 'Physics', 'English', 'IELTS', 'Programming', 'Chemistry']
+const POPULAR_AM = ['ሂሳብ', 'ፊዚክስ', 'እንግሊዝኛ', 'IELTS', 'ፕሮግራሚንግ', 'ኬሚስትሪ']
 
 const FALLBACK_SUBJECTS = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Programming'].map(name => ({ name }))
 
 // Icon and accent colour for a subject tile, matched on the subject name
 const SUBJECT_STYLES = [
-  [/math|calculus|statistic|algebra/i, 'sigma', '#10b981'],
-  [/physic/i, 'atom', '#3b82f6'],
-  [/chem/i, 'flask', '#8b5cf6'],
-  [/bio/i, 'leaf', '#22c55e'],
-  [/english|ielts|toefl|amharic|oromo|language|french|arabic/i, 'languages', '#f59e0b'],
-  [/program|computer|code|web|python|software/i, 'code', '#06b6d4'],
-  [/exam|entrance|matric/i, 'trophy', '#ef4444']
+  [/math|calculus|statistic|algebra|ሂሳብ/i, 'sigma', '#10b981'],
+  [/physic|ፊዚክስ/i, 'atom', '#3b82f6'],
+  [/chem|ኬሚስትሪ/i, 'flask', '#8b5cf6'],
+  [/bio|ባዮሎጂ/i, 'leaf', '#22c55e'],
+  [/english|ielts|toefl|amharic|oromo|language|french|arabic|እንግሊዝኛ|አማርኛ/i, 'languages', '#f59e0b'],
+  [/program|computer|code|web|python|software|ፕሮግራሚንግ/i, 'code', '#06b6d4'],
+  [/exam|entrance|matric|ፈተና/i, 'trophy', '#ef4444']
 ]
 const subjectStyle = name => {
   const match = SUBJECT_STYLES.find(([pattern]) => pattern.test(name))
   return match ? { icon: match[1], color: match[2] } : { icon: 'book', color: '#14b8a6' }
 }
 
-const LEVELS = [
-  { num: 'G1–8', title: 'Primary school', text: 'Reading, maths foundations and homework help' },
-  { num: 'G9–10', title: 'Secondary school', text: 'Core sciences, languages and regional exams' },
-  { num: 'G11–12', title: 'Preparatory & national exam', text: 'Focused ESSLCE preparation with past papers', highlight: true },
-  { num: 'Uni', title: 'University', text: 'Calculus, programming, statistics and coursework' },
-  { num: 'Pro', title: 'Professional skills', text: 'IELTS, TOEFL, coding and career skills' }
-]
-
-const STEPS = {
-  student: [
-    ['search', 'Find your tutor', 'Filter by subject, price, rating and availability, or post a job and let tutors come to you.'],
-    ['calendar', 'Book a time', 'Pick a slot that fits their weekly schedule. The price is locked the moment you book.'],
-    ['video', 'Learn your way', 'Meet online or in person, and keep in touch with built-in messaging.'],
-    ['star', 'Review & grow', 'Rate each session to track progress and help other students choose.']
-  ],
-  tutor: [
-    ['file', 'Build your profile', 'Add your subjects, education, CV, rates for online and in-person, and weekly hours.'],
-    ['shield', 'Get verified', 'Our team reviews your credentials so students see the Verified badge.'],
-    ['briefcase', 'Win students', 'Get booked directly or send proposals on tutoring jobs that match your skills.'],
-    ['trendingUp', 'Grow your reputation', 'Every completed session builds your work history, Job Success Score and badges.']
-  ]
-}
-
-const FEATURES = [
-  ['shield', 'Verified tutors', 'Credentials are reviewed by our team before a tutor earns the Verified badge.'],
-  ['clock', 'Real work history', 'Sessions and reviews are recorded by the platform, so reputations can\'t be faked.'],
-  ['lock', 'Locked-in prices', 'The rate you book at is the rate you pay, even if the tutor changes prices later.'],
-  ['message', 'Built-in messaging', 'Talk to tutors before and after you book, all in one inbox.'],
-  ['calendar', 'Flexible scheduling', 'See each tutor\'s weekly hours and book the time that suits you.'],
-  ['globe', 'Online or in person', 'Learn from anywhere in Ethiopia, or meet a tutor in your city.']
-]
-
 function Home() {
   const navigate = useNavigate()
   const user = getUser()
+  const { t, lang } = useLanguage()
   const [featuredTutors, setFeaturedTutors] = useState([])
   const [highlights, setHighlights] = useState(null)
   const [search, setSearch] = useState('')
@@ -88,11 +60,45 @@ function Home() {
 
   const subjects = highlights?.subjects.length ? highlights.subjects.slice(0, 8) : FALLBACK_SUBJECTS
 
+  const popularList = lang === 'am' ? POPULAR_AM : POPULAR_EN
+
   const stats = highlights && [
-    [highlights.tutors, 'Expert tutors'],
-    [highlights.sessionsCompleted, 'Sessions completed'],
-    [highlights.averageRating != null ? `${highlights.averageRating}★` : '—', 'Average rating'],
-    [highlights.subjects.length, 'Subjects taught']
+    [highlights.tutors, t('stats.tutors')],
+    [highlights.sessionsCompleted, t('stats.sessions')],
+    [highlights.averageRating != null ? `${highlights.averageRating}★` : '—', t('stats.rating')],
+    [highlights.subjects.length, t('stats.subjects')]
+  ]
+
+  const levels = [
+    { num: 'G1–8', title: t('level.primary.title'), text: t('level.primary.desc') },
+    { num: 'G9–10', title: t('level.secondary.title'), text: t('level.secondary.desc') },
+    { num: 'G11–12', title: t('level.prep.title'), text: t('level.prep.desc'), highlight: true },
+    { num: 'Uni', title: t('level.uni.title'), text: t('level.uni.desc') },
+    { num: 'Pro', title: t('level.pro.title'), text: t('level.pro.desc') }
+  ]
+
+  const steps = {
+    student: [
+      ['search', t('step.student.1.title'), t('step.student.1.desc')],
+      ['calendar', t('step.student.2.title'), t('step.student.2.desc')],
+      ['video', t('step.student.3.title'), t('step.student.3.desc')],
+      ['star', t('step.student.4.title'), t('step.student.4.desc')]
+    ],
+    tutor: [
+      ['file', t('step.tutor.1.title'), t('step.tutor.1.desc')],
+      ['shield', t('step.tutor.2.title'), t('step.tutor.2.desc')],
+      ['briefcase', t('step.tutor.3.title'), t('step.tutor.3.desc')],
+      ['trendingUp', t('step.tutor.4.title'), t('step.tutor.4.desc')]
+    ]
+  }
+
+  const features = [
+    ['shield', t('feat.verified.title'), t('feat.verified.desc')],
+    ['clock', t('feat.history.title'), t('feat.history.desc')],
+    ['lock', t('feat.price.title'), t('feat.price.desc')],
+    ['message', t('feat.messaging.title'), t('feat.messaging.desc')],
+    ['calendar', t('feat.scheduling.title'), t('feat.scheduling.desc')],
+    ['globe', t('feat.modes.title'), t('feat.modes.desc')]
   ]
 
   return (
@@ -102,18 +108,33 @@ function Home() {
       <section className="hero-section">
         <div className="hero-grid">
           <div className="hero-content">
-            <span className="hero-pill"><b>New</b> Post a job and get proposals from tutors</span>
-            <h1>Learn from Ethiopia's <span className="text-accent">best tutors.</span><br />Master any subject.</h1>
-            <p className="hero-lead">From Grade 1 to the national exam and university: verified tutors, real reviews, and prices that are locked the moment you book.</p>
+            <span className="hero-pill">
+              <b>{lang === 'am' ? 'አዲስ' : 'New'}</b> {t('hero.badge')}
+            </span>
+            <h1>
+              {t('hero.titlePre')}{' '}
+              <span className="text-accent">{t('hero.titleAccent')}</span>
+              <br />
+              {t('hero.titlePost')}
+            </h1>
+            <p className="hero-lead">
+              {t('hero.subtitle')}
+            </p>
 
             <form onSubmit={handleSearch} className="hero-search" role="search">
               <Icon name="search" />
-              <input aria-label="Search tutors" placeholder="What do you want to learn?" value={search} onChange={e => setSearch(e.target.value)} />
-              <button className="btn-primary">Search</button>
+              <input
+                aria-label="Search tutors"
+                placeholder={t('hero.searchPlaceholder')}
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+              <button className="btn-primary">{t('hero.searchBtn')}</button>
             </form>
+
             <div className="hero-popular">
-              <span>Popular:</span>
-              {POPULAR.map(term => (
+              <span>{t('hero.popular')}</span>
+              {popularList.map(term => (
                 <button key={term} type="button" className="chip" onClick={() => searchFor(term)}>{term}</button>
               ))}
             </div>
@@ -121,16 +142,16 @@ function Home() {
             {!user ? (
               <div className="hero-buttons">
                 <button onClick={() => navigate('/register', { state: { role: 'student' } })} className="btn-primary btn-lg">
-                  Start learning <Icon name="arrowRight" size={18} />
+                  {t('hero.startLearning')} <Icon name="arrowRight" size={18} />
                 </button>
                 <button onClick={() => navigate('/register', { state: { role: 'tutor' } })} className="btn-secondary btn-lg">
-                  Become a tutor
+                  {t('hero.becomeTutor')}
                 </button>
               </div>
             ) : (
               <div className="hero-buttons">
                 <button onClick={() => navigate(user.role === 'admin' ? '/admin' : '/dashboard')} className="btn-primary btn-lg">
-                  Go to your dashboard <Icon name="arrowRight" size={18} />
+                  {t('hero.goToDashboard')} <Icon name="arrowRight" size={18} />
                 </button>
               </div>
             )}
@@ -138,11 +159,11 @@ function Home() {
             {featuredTutors.length > 0 && highlights?.averageRating != null && (
               <div className="hero-trust">
                 <div className="avatar-stack">
-                  {featuredTutors.map(t => <Avatar key={t._id} path={t.profilePictureUrl} name={t.user?.name} />)}
+                  {featuredTutors.map(tutor => <Avatar key={tutor._id} path={tutor.profilePictureUrl} name={tutor.user?.name} />)}
                 </div>
                 <div className="small">
                   <span className="stars">★★★★★</span> <strong>{highlights.averageRating}/5</strong>
-                  <div className="muted">from {highlights.reviewCount} verified session reviews</div>
+                  <div className="muted">{highlights.reviewCount} {t('hero.verifiedReviews')}</div>
                 </div>
               </div>
             )}
@@ -171,9 +192,9 @@ function Home() {
 
       <section className="section">
         <div className="section-head">
-          <p className="eyebrow">Explore subjects</p>
-          <h2>Whatever you're studying, there's a tutor for it</h2>
-          <p>Browse by subject to find tutors who specialise in exactly what you need.</p>
+          <p className="eyebrow">{t('subjects.eyebrow')}</p>
+          <h2>{t('subjects.title')}</h2>
+          <p>{t('subjects.subtitle')}</p>
         </div>
         <div className="subject-grid">
           {subjects.map(subject => {
@@ -183,7 +204,11 @@ function Home() {
                 <span className="subject-icon"><Icon name={icon} size={24} /></span>
                 <div>
                   <h3>{subject.name}</h3>
-                  {subject.tutors != null && <span className="muted small">{subject.tutors} tutor{subject.tutors === 1 ? '' : 's'}</span>}
+                  {subject.tutors != null && (
+                    <span className="muted small">
+                      {subject.tutors} {subject.tutors === 1 ? t('subjects.tutorSingular') : t('subjects.tutorPlural')}
+                    </span>
+                  )}
                 </div>
                 <Icon name="arrowRight" size={18} className="arrow" />
               </Link>
@@ -195,20 +220,20 @@ function Home() {
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="levels">
           <div>
-            <p className="eyebrow">Built for the Ethiopian curriculum</p>
-            <h2>Support at every stage of your education</h2>
-            <p className="muted" style={{ fontSize: '1.08rem' }}>Our tutors know the Ethiopian syllabus, from primary foundations to the Grade 12 national exam and beyond.</p>
+            <p className="eyebrow">{t('levels.eyebrow')}</p>
+            <h2>{t('levels.title')}</h2>
+            <p className="muted" style={{ fontSize: '1.08rem' }}>{t('levels.subtitle')}</p>
             <ul className="check-list">
-              <li><Icon name="check" size={18} />Tutors who studied and teach the national curriculum</li>
-              <li><Icon name="check" size={18} />Exam preparation with past papers and mock tests</li>
-              <li><Icon name="check" size={18} />Lessons in Amharic, Afaan Oromo, English and more</li>
+              <li><Icon name="check" size={18} />{t('levels.check1')}</li>
+              <li><Icon name="check" size={18} />{t('levels.check2')}</li>
+              <li><Icon name="check" size={18} />{t('levels.check3')}</li>
             </ul>
             <button className="btn-primary" onClick={() => navigate(user?.role === 'student' ? '/jobs/new' : '/register', { state: { role: 'student' } })}>
-              Post what you need <Icon name="arrowRight" size={18} />
+              {t('levels.postJobBtn')} <Icon name="arrowRight" size={18} />
             </button>
           </div>
           <div className="level-ladder">
-            {LEVELS.map(level => (
+            {levels.map(level => (
               <div key={level.title} className={`level-step glass-card ${level.highlight ? 'level-highlight' : ''}`}>
                 <span className="level-num">{level.num}</span>
                 <div>
@@ -224,15 +249,19 @@ function Home() {
 
       <section className="section" style={{ paddingTop: 0, textAlign: 'center' }}>
         <div className="section-head">
-          <p className="eyebrow">How it works</p>
-          <h2>Simple for students. Rewarding for tutors.</h2>
+          <p className="eyebrow">{t('how.eyebrow')}</p>
+          <h2>{t('how.title')}</h2>
         </div>
         <div className="segmented" role="tablist">
-          <button role="tab" aria-selected={audience === 'student'} className={audience === 'student' ? 'active' : ''} onClick={() => setAudience('student')}>For students</button>
-          <button role="tab" aria-selected={audience === 'tutor'} className={audience === 'tutor' ? 'active' : ''} onClick={() => setAudience('tutor')}>For tutors</button>
+          <button role="tab" aria-selected={audience === 'student'} className={audience === 'student' ? 'active' : ''} onClick={() => setAudience('student')}>
+            {t('how.forStudents')}
+          </button>
+          <button role="tab" aria-selected={audience === 'tutor'} className={audience === 'tutor' ? 'active' : ''} onClick={() => setAudience('tutor')}>
+            {t('how.forTutors')}
+          </button>
         </div>
         <div className="steps" style={{ textAlign: 'left' }}>
-          {STEPS[audience].map(([icon, title, text], i) => (
+          {steps[audience].map(([icon, title, text], i) => (
             <div key={title} className="step-card glass-card">
               <span className="step-index">0{i + 1}</span>
               <div className="step-number"><Icon name={icon} size={22} /></div>
@@ -245,12 +274,12 @@ function Home() {
 
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="section-head">
-          <p className="eyebrow">Why LAMIF</p>
-          <h2>A marketplace built on trust</h2>
-          <p>Everything you need to find the right tutor, and nothing that gets in the way.</p>
+          <p className="eyebrow">{t('features.eyebrow')}</p>
+          <h2>{t('features.title')}</h2>
+          <p>{t('features.subtitle')}</p>
         </div>
         <div className="features-section">
-          {FEATURES.map(([icon, title, text]) => (
+          {features.map(([icon, title, text]) => (
             <div key={title} className="feature-card glass-card">
               <span className="subject-icon" style={{ '--tile-c': '#10b981' }}><Icon name={icon} size={24} /></span>
               <h3>{title}</h3>
@@ -264,10 +293,10 @@ function Home() {
         <section className="section" style={{ paddingTop: 0 }}>
           <div className="row-between" style={{ alignItems: 'flex-end', marginBottom: '32px' }}>
             <div>
-              <p className="eyebrow">Top tutors</p>
-              <h2 style={{ fontSize: 'clamp(2rem, 4.5vw, 2.9rem)', margin: 0, letterSpacing: '-0.03em' }}>Learn from the best</h2>
+              <p className="eyebrow">{t('featured.eyebrow')}</p>
+              <h2 style={{ fontSize: 'clamp(2rem, 4.5vw, 2.9rem)', margin: 0, letterSpacing: '-0.03em' }}>{t('featured.title')}</h2>
             </div>
-            <Link to="/browse-tutors" className="btn-secondary btn-sm">View all tutors <Icon name="arrowRight" size={16} /></Link>
+            <Link to="/browse-tutors" className="btn-secondary btn-sm">{t('featured.viewAll')} <Icon name="arrowRight" size={16} /></Link>
           </div>
           <div className="featured-grid">
             {featuredTutors.map(tutor => (
@@ -285,9 +314,12 @@ function Home() {
                   {tutor.subjects.map(s => <span key={s} className="subject-tag">{s}</span>)}
                 </div>
                 <div className="featured-foot">
-                  <span><strong style={{ fontSize: '1.15rem' }}>{formatMoney(startingRate(tutor))}</strong><span className="muted small">/hr</span></span>
+                  <span>
+                    <strong style={{ fontSize: '1.15rem' }}>{formatMoney(startingRate(tutor))}</strong>
+                    <span className="muted small">{t('featured.perHour')}</span>
+                  </span>
                   <span className="success-text small" style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    View profile <Icon name="arrowRight" size={16} />
+                    {t('featured.viewProfile')} <Icon name="arrowRight" size={16} />
                   </span>
                 </div>
               </Link>
@@ -299,9 +331,9 @@ function Home() {
       {highlights?.reviews.length > 0 && (
         <section className="section" style={{ paddingTop: 0 }}>
           <div className="section-head">
-            <p className="eyebrow">Student stories</p>
-            <h2>Real results from real sessions</h2>
-            <p>Every review on LAMIF comes from a completed, paid session.</p>
+            <p className="eyebrow">{t('reviews.eyebrow')}</p>
+            <h2>{t('reviews.title')}</h2>
+            <p>{t('reviews.subtitle')}</p>
           </div>
           <div className="quote-grid">
             {highlights.reviews.map(review => (
@@ -312,7 +344,7 @@ function Home() {
                   <Avatar name={review.studentName} className="avatar-sm" />
                   <div className="small">
                     <strong>{review.studentName}</strong>
-                    <div className="muted">{review.subject} with <Link className="link success-text" to={`/tutors/${review.tutorId}`}>{review.tutorName}</Link></div>
+                    <div className="muted">{review.subject} {t('reviews.withTutor')} <Link className="link success-text" to={`/tutors/${review.tutorId}`}>{review.tutorName}</Link></div>
                   </div>
                 </figcaption>
               </figure>
@@ -324,18 +356,22 @@ function Home() {
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="cta-band">
           <div>
-            <p className="eyebrow" style={{ color: '#6ee7b7' }}>For tutors</p>
-            <h2>Teach what you know. Earn on your schedule.</h2>
-            <p>Join LAMIF to reach students across Ethiopia. Set your own rates, choose your hours, and build a reputation that speaks for itself.</p>
+            <p className="eyebrow" style={{ color: '#6ee7b7' }}>{t('tutorCta.eyebrow')}</p>
+            <h2>{t('tutorCta.title')}</h2>
+            <p>{t('tutorCta.desc')}</p>
             <div className="hero-buttons">
               <button className="btn-primary btn-lg" onClick={() => navigate('/register', { state: { role: 'tutor' } })}>
-                Become a tutor <Icon name="arrowRight" size={18} />
+                {t('tutorCta.becomeBtn')} <Icon name="arrowRight" size={18} />
               </button>
-              <button className="btn-secondary btn-lg" onClick={() => navigate('/jobs')}>Browse tutoring jobs</button>
+              <button className="btn-secondary btn-lg" onClick={() => navigate('/jobs')}>{t('tutorCta.browseJobs')}</button>
             </div>
           </div>
           <div className="cta-perks">
-            {[['wallet', 'Set your own online and in-person rates'], ['calendar', 'Teach only during the hours you choose'], ['sparkles', 'Earn Rising Talent and Top Rated badges']].map(([icon, text]) => (
+            {[
+              ['wallet', t('tutorCta.perk1')],
+              ['calendar', t('tutorCta.perk2')],
+              ['sparkles', t('tutorCta.perk3')]
+            ].map(([icon, text]) => (
               <div key={text} className="cta-perk"><Icon name={icon} size={22} />{text}</div>
             ))}
           </div>
@@ -346,28 +382,33 @@ function Home() {
         <div className="footer-grid">
           <div>
             <Logo />
-            <p className="muted" style={{ maxWidth: '320px', marginTop: '14px' }}>Connecting Ethiopian students with qualified tutors, online and in person.</p>
+            <p className="muted" style={{ maxWidth: '320px', marginTop: '14px', lineHeight: 1.5 }}>
+              {t('footer.mission')}
+            </p>
+            <div style={{ marginTop: '16px' }}>
+              <LanguageToggle />
+            </div>
           </div>
           <div>
-            <h4>For students</h4>
-            <Link to="/browse-tutors">Find a tutor</Link>
-            <Link to="/register" state={{ role: 'student' }}>Post a job</Link>
-            <Link to="/browse-tutors?verified=true">Verified tutors</Link>
+            <h4>{t('footer.forStudents')}</h4>
+            <Link to="/browse-tutors">{t('footer.findTutor')}</Link>
+            <Link to="/register" state={{ role: 'student' }}>{t('footer.postJob')}</Link>
+            <Link to="/browse-tutors?verified=true">{t('footer.verifiedTutors')}</Link>
           </div>
           <div>
-            <h4>For tutors</h4>
-            <Link to="/register" state={{ role: 'tutor' }}>Become a tutor</Link>
-            <Link to="/jobs">Tutoring jobs</Link>
-            <Link to="/login">Tutor login</Link>
+            <h4>{t('footer.forTutors')}</h4>
+            <Link to="/register" state={{ role: 'tutor' }}>{t('footer.becomeTutor')}</Link>
+            <Link to="/jobs">{t('footer.tutoringJobs')}</Link>
+            <Link to="/login">{t('footer.tutorLogin')}</Link>
           </div>
           <div>
-            <h4>Subjects</h4>
+            <h4>{t('footer.subjects')}</h4>
             {subjects.slice(0, 4).map(s => <Link key={s.name} to={`/browse-tutors?subject=${encodeURIComponent(s.name)}`}>{s.name}</Link>)}
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} LAMIF Educational Platform. All rights reserved.</span>
-          <span>Made for learners across Ethiopia</span>
+          <span>© {new Date().getFullYear()} {t('footer.copyright')}</span>
+          <span>{t('footer.madeFor')}</span>
         </div>
       </footer>
     </div>
