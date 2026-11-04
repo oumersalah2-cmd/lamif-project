@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
 import Icon from '../components/Icon'
 import api, { errorMessage } from '../lib/api'
@@ -11,6 +11,7 @@ const ROLES = [
 
 function Register() {
   const location = useLocation()
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -30,12 +31,12 @@ function Register() {
     setLoading(true)
     setMessage('')
     try {
-      await api.post('/auth/register', formData)
-      setRegistered(true)
-      setMessage(`Account created! We sent a verification link to ${formData.email.trim()}. Open it to activate your account, then log in.`)
+      const res = await api.post('/auth/register', formData)
+      const token = res.data.verificationToken || ''
+      const email = formData.email.trim()
+      navigate(`/verify-email?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}&registered=true`)
     } catch (error) {
       setMessage(errorMessage(error, 'Connection failed.'))
-    } finally {
       setLoading(false)
     }
   }

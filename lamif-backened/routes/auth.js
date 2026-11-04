@@ -79,15 +79,19 @@ router.post('/register', registerLimiter, async (req, res) => {
     emailVerified: false
   })
 
+  let verificationToken = null
   try {
-    await issueVerification(user)
+    verificationToken = await issueVerification(user)
   } catch (err) {
     console.error(`[MAILER ERROR] Failed to send verification email to ${email}:`, err)
   }
 
   res.status(201).json({
     message: 'Account created. Check your email to verify your address.',
-    verificationRequired: true
+    verificationRequired: true,
+    email: user.email,
+    verificationToken,
+    telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || 'lamif_verify_bot'
   })
 })
 
@@ -102,6 +106,7 @@ router.post('/verify-email', verifyLimiter, async (req, res) => {
   }
 
   user.emailVerified = true
+  user.verificationMethod = 'email'
   user.verificationTokenHash = undefined
   user.verificationExpires = undefined
   await user.save()
@@ -111,11 +116,12 @@ router.post('/verify-email', verifyLimiter, async (req, res) => {
 
 router.post('/resend-verification', resendLimiter, async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase()
+  let verificationToken = null
   if (email) {
     const user = await User.findOne({ email })
     if (user && !user.emailVerified) {
       try {
-        await issueVerification(user)
+        verificationToken = await issueVerification(user)
       } catch (err) {
         console.error(`[MAILER ERROR] Failed to send verification email to ${email}:`, err)
       }
@@ -123,7 +129,58 @@ router.post('/resend-verification', resendLimiter, async (req, res) => {
   }
 
   res.status(200).json({
-    message: 'If the account exists and is unverified, a verification email has been sent.'
+    message: 'If the account exists and is unverified, a verification email has been sent.',
+    verificationToken,
+    telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || 'lamif_verify_bot'
+  })
+})
+
+router.get('/verification-status', async (req, res) => {
+  const email = String(req.query.email || '').trim().toLowerCase()
+  const token = String(req.query.token || '').trim()
+
+  if (!email && !token) {
+    return res.status(400).json({ verified: false })
+  }
+
+  let user = null
+  if (email) {
+    user = await User.findOne({ email })
+  } else if (token) {
+    user = await User.findOne({ verificationTokenHash: hashToken(token) })
+  }
+
+  if (!user) {
+    return res.status(200).json({ verified: false })
+  }
+
+  res.status(200).json({
+    verified: !!user.emailVerified,
+    method: user.verificationMethod || (user.emailVerified ? 'email' : null)
+  })
+})
+
+router.get('/telegram-link', async (req, res) => {
+  const email = String(req.query.email || '').trim().toLowerCase()
+  if (!email) throw httpError(400, 'Email is required')
+
+  const user = await User.findOne({ email })
+  if (!user) throw httpError(404, 'User not found')
+  if (user.emailVerified) {
+    return res.status(200).json({ verified: true })
+  }
+
+  // Issue a fresh token if missing or expired
+  let token = null
+  if (!user.verificationTokenHash || !user.verificationExpires || user.verificationExpires <= new Date()) {
+    token = await issueVerification(user)
+  }
+
+  const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'lamif_verify_bot'
+  res.status(200).json({
+    verified: false,
+    botUsername,
+    token
   })
 })
 

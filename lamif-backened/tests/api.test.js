@@ -134,6 +134,34 @@ describe('auth and email verification', () => {
     assert.equal(login.data.user.emailVerified, true)
   })
 
+  it('verifies a user via Telegram update and updates status', async () => {
+    const email = 'telegram-verify@example.com'
+    const reg = await call('POST', '/auth/register', null, { name: 'Telegram User', email, password: 'password123', role: 'student' })
+    assert.equal(reg.status, 201)
+    const token = reg.data.verificationToken
+    assert.ok(token)
+
+    const { handleTelegramUpdate } = require('../lib/telegramBot')
+    await handleTelegramUpdate({
+      message: {
+        chat: { id: 123456789 },
+        from: { username: 'telegram_user' },
+        text: `/start ${token}`
+      }
+    })
+
+    const status = await call('GET', `/auth/verification-status?email=${encodeURIComponent(email)}`)
+    assert.equal(status.status, 200)
+    assert.equal(status.data.verified, true)
+    assert.equal(status.data.method, 'telegram')
+
+    const user = await User.findOne({ email })
+    assert.equal(user.emailVerified, true)
+    assert.equal(user.verificationMethod, 'telegram')
+    assert.equal(user.telegramChatId, '123456789')
+    assert.equal(user.telegramUsername, 'telegram_user')
+  })
+
   it('rejects expired verification links', async () => {
     const email = 'expired-link@example.com'
     const token = 'expired-email-verification-token'

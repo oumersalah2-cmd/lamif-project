@@ -29,6 +29,17 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  telegramChatId: {
+    type: String
+  },
+  telegramUsername: {
+    type: String
+  },
+  verificationMethod: {
+    type: String,
+    enum: ['email', 'telegram', 'manual', null],
+    default: null
+  },
   verificationTokenHash: {
     type: String
   },

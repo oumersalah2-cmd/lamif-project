@@ -84,15 +84,35 @@ function Login() {
       </form>
       {message && <p className="error-text" style={{ marginTop: '1rem', textAlign: 'center' }}>{message}</p>}
       {needsVerification && (
-        <button
-          type="button"
-          className="btn-ghost"
-          style={{ width: '100%', marginTop: '1rem' }}
-          onClick={handleResend}
-          disabled={resending}
-        >
-          {resending ? 'Sending...' : 'Resend verification email'}
-        </button>
+        <div style={{ marginTop: '1.25rem' }}>
+          <Link
+            to={`/verify-email?email=${encodeURIComponent(formData.email.trim())}&registered=true`}
+            className="btn-primary"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              width: '100%',
+              marginBottom: '0.75rem',
+              textDecoration: 'none',
+              background: '#2AABEE',
+              color: '#fff',
+              fontWeight: 600
+            }}
+          >
+            <span>✈️ Verify via Telegram (1-Click)</span>
+          </Link>
+          <button
+            type="button"
+            className="btn-ghost"
+            style={{ width: '100%' }}
+            onClick={handleResend}
+            disabled={resending}
+          >
+            {resending ? 'Sending...' : 'Resend verification email'}
+          </button>
+        </div>
       )}
       {resendMessage && <p className="success-text" style={{ marginTop: '1rem', textAlign: 'center' }}>{resendMessage}</p>}
       <p className="muted" style={{ marginTop: '2rem', textAlign: 'center' }}>

@@ -70,12 +70,24 @@ app.get('/api/health', (req, res) => {
         SMTP_PASS: process.env.SMTP_PASS ? '✅ set' : '❌ missing',
         MAIL_FROM: process.env.MAIL_FROM || '(not set)',
         CLIENT_URL: process.env.CLIENT_URL || '(not set)',
+        TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN ? '✅ set' : '❌ missing',
+        TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME || 'lamif_verify_bot',
         MONGO_URI: process.env.MONGO_URI ? '✅ set' : '❌ missing',
         JWT_SECRET: process.env.JWT_SECRET ? '✅ set' : '❌ missing'
       }
     })
   }
   res.status(200).json({ status: 'ok' })
+})
+
+app.post('/api/telegram/webhook', async (req, res) => {
+  try {
+    const { handleTelegramUpdate } = require('./lib/telegramBot')
+    await handleTelegramUpdate(req.body)
+  } catch (err) {
+    console.error('[TELEGRAM WEBHOOK ERROR]', err.message || err)
+  }
+  res.status(200).send('OK')
 })
 
 app.use('/api/auth', authRoutes)

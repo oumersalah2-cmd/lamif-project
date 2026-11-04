@@ -23,6 +23,8 @@ async function issueVerification(user) {
     text,
     html
   })
+
+  return token
 }
 
 module.exports = { issueVerification, hashToken }

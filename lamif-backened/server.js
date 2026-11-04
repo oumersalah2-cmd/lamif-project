@@ -40,6 +40,12 @@ connectDatabase()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
+      try {
+        const { startTelegramBot } = require('./lib/telegramBot')
+        startTelegramBot().catch(err => console.error('[TELEGRAM BOT START ERROR]', err))
+      } catch (err) {
+        console.warn('[TELEGRAM BOT INIT WARN]', err.message)
+      }
     })
   })
   .catch((err) => {
