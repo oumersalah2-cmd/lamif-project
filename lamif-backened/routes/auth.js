@@ -11,11 +11,20 @@ const { issueVerification, hashToken } = require('../lib/emailVerification')
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 // Rate limiters for auth endpoints
+const getClientIp = (req) => {
+  const forwarded = req.headers['x-forwarded-for']
+  const raw = forwarded ? String(forwarded).split(',')[0] : (req.ip || req.socket?.remoteAddress || '127.0.0.1')
+  // Strip trailing port if present (Azure proxy attaches :port)
+  return String(raw).trim().replace(/:\d+$/, '')
+}
+
 const registerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: getClientIp,
+  validate: false,
   message: { message: 'Too many registration requests. Please try again later.' }
 })
 
@@ -24,6 +33,8 @@ const verifyLimiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: getClientIp,
+  validate: false,
   message: { message: 'Too many verification attempts. Please try again later.' }
 })
 
@@ -32,6 +43,8 @@ const resendLimiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: getClientIp,
+  validate: false,
   message: { message: 'Too many verification email requests. Please try again later.' }
 })
 
