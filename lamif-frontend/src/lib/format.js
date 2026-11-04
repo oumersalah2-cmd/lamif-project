@@ -21,7 +21,16 @@ export function timeAgo(date) {
   return `${n} ${unit}${n > 1 ? 's' : ''} ago`
 }
 
-const STATUS_LABELS = { in_progress: 'In progress' }
+const STATUS_LABELS = {
+  in_progress: 'In progress',
+  draft: 'Draft',
+  submitted: 'Submitted',
+  under_review: 'Under Review',
+  needs_changes: 'Needs Changes',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  pending: 'Pending Review'
+}
 export const statusLabel = status =>
   STATUS_LABELS[status] || status.charAt(0).toUpperCase() + status.slice(1)
 

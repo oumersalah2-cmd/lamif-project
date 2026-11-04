@@ -45,8 +45,12 @@ Engineered as a clean monorepo, the platform combines a **React 19 & Three.js** 
 * **Proposal & Job Center:** Browse student job postings, submit tailored bids, and track proposal statuses in one place.
 * **Financial & Analytics Dashboard:** Monitor completed earnings, active contract valuation, reviews, and client ratings.
 
-### 🛡️ For Administrators
-* **Verification Queue:** Review tutor identity credentials, qualification documents, and CVs with one-click approval or rejection.
+### 🛡️ For Administrators & Tutor Onboarding
+* **Tutor Application & Admin Review System:** Tutors must complete a thorough credential application (free of charge) and receive administrative approval before appearing publicly or accepting bookings.
+* **Segregated Private Document Storage:** National ID photos, passport documents, and certificate files are stored in private storage (`uploads_private/`), accessible strictly to admins and the tutor themselves via authenticated endpoints, completely sanitized from public endpoints.
+* **Duplicate Application Prevention:** Backend checks enforce unique National / Kebele ID numbers and contact phone numbers across all active applications.
+* **Lifecycle Statuses:** `draft` -> `submitted` -> `under_review` -> `needs_changes` (with reviewer note) -> `approved` / `rejected` (with reason and cooldown reapplication timer).
+* **Automated Notifications & Emails:** In-app notifications and email alerts trigger automatically at every review transition.
 * **Platform Analytics:** Real-time statistics on active users, total sessions, platform revenue volume, and booking health.
 
 ---

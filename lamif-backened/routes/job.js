@@ -108,7 +108,7 @@ router.post('/:id/proposals', protect, requireRole('tutor'), requireVerified, as
 
   const tutor = await Tutor.findOne({ user: req.user.id })
   if (!tutor) throw httpError(400, 'Create your tutor profile before sending proposals')
-  if (tutor.verificationStatus === 'rejected') throw httpError(403, 'Your profile was not approved')
+  if (tutor.verificationStatus !== 'approved') throw httpError(403, 'Your tutor application must be approved before sending proposals')
 
   const existing = await Proposal.findOne({ job: job._id, tutor: tutor._id })
   if (existing && existing.status !== 'withdrawn') throw httpError(400, 'You already sent a proposal for this job')

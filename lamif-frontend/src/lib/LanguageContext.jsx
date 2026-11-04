@@ -1,19 +1,21 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react'
 import translations from './translations'
 
+const SUPPORTED_LANGS = ['en', 'am', 'om']
 const LanguageContext = createContext(null)
 
 export function LanguageProvider({ children }) {
   const [lang, setLangState] = useState(() => {
     try {
-      return localStorage.getItem('lamif_lang') || 'en'
+      const saved = localStorage.getItem('lamif_lang')
+      return SUPPORTED_LANGS.includes(saved) ? saved : 'en'
     } catch {
       return 'en'
     }
   })
 
   const setLang = useCallback((newLang) => {
-    const valid = newLang === 'am' ? 'am' : 'en'
+    const valid = SUPPORTED_LANGS.includes(newLang) ? newLang : 'en'
     setLangState(valid)
     try {
       localStorage.setItem('lamif_lang', valid)
@@ -21,24 +23,19 @@ export function LanguageProvider({ children }) {
       // storage unavailable
     }
     document.documentElement.lang = valid
-    if (valid === 'am') {
-      document.body.classList.add('lang-am')
-    } else {
-      document.body.classList.remove('lang-am')
-    }
+    document.body.classList.toggle('lang-am', valid === 'am')
+    document.body.classList.toggle('lang-om', valid === 'om')
   }, [])
 
   useEffect(() => {
     document.documentElement.lang = lang
-    if (lang === 'am') {
-      document.body.classList.add('lang-am')
-    } else {
-      document.body.classList.remove('lang-am')
-    }
+    document.body.classList.toggle('lang-am', lang === 'am')
+    document.body.classList.toggle('lang-om', lang === 'om')
   }, [lang])
 
   const toggleLang = useCallback(() => {
-    setLang(lang === 'en' ? 'am' : 'en')
+    const cycle = { en: 'am', am: 'om', om: 'en' }
+    setLang(cycle[lang] || 'en')
   }, [lang, setLang])
 
   const t = useCallback((key, fallback = '') => {
@@ -55,7 +52,8 @@ export function LanguageProvider({ children }) {
     setLang,
     toggleLang,
     t,
-    isAmharic: lang === 'am'
+    isAmharic: lang === 'am',
+    isOromo: lang === 'om'
   }), [lang, setLang, toggleLang, t])
 
   return (

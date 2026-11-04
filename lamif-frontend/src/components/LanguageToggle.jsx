@@ -1,26 +1,45 @@
 import { useLanguage } from '../lib/LanguageContext'
 import Icon from './Icon'
 
+const LANGUAGES = [
+  { code: 'en', label: 'EN', title: 'English' },
+  { code: 'am', label: 'አማ', title: 'አማርኛ (Amharic)' },
+  { code: 'om', label: 'OM', title: 'Afaan Oromoo (Oromo)' }
+]
+
 function LanguageToggle({ showIcon = true, className = '' }) {
-  const { lang, toggleLang } = useLanguage()
-  const isAm = lang === 'am'
-  const title = isAm ? 'Switch to English' : 'ወደ አማርኛ ቀይር (Switch to Amharic)'
+  const { lang, setLang } = useLanguage()
 
   return (
-    <button
-      type="button"
+    <div
       className={`lang-switch ${className}`}
-      onClick={toggleLang}
-      title={title}
-      aria-label={title}
+      role="group"
+      aria-label="Language selection"
     >
       {showIcon && <Icon name="globe" size={14} className="lang-icon" />}
-      <span className={!isAm ? 'lang-active' : 'lang-inactive'}>EN</span>
-      <span className="lang-divider">|</span>
-      <span className={isAm ? 'lang-active' : 'lang-inactive'}>አማ</span>
-    </button>
+      {LANGUAGES.map((item, idx) => (
+        <span key={item.code} style={{ display: 'inline-flex', alignItems: 'center' }}>
+          {idx > 0 && <span className="lang-divider">|</span>}
+          <button
+            type="button"
+            className={`lang-btn ${lang === item.code ? 'lang-active' : 'lang-inactive'}`}
+            onClick={() => setLang(item.code)}
+            title={item.title}
+            aria-label={item.title}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '0 3px',
+              font: 'inherit',
+              cursor: 'pointer'
+            }}
+          >
+            {item.label}
+          </button>
+        </span>
+      ))}
+    </div>
   )
 }
 
 export default LanguageToggle
-

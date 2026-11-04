@@ -302,6 +302,15 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important;
   color: var(--text-muted);
   opacity: 0.6;
 }
+.lang-switch .lang-btn {
+  display: inline-flex;
+  align-items: center;
+  transition: var(--transition);
+}
+.lang-switch .lang-btn:hover {
+  color: var(--primary-strong);
+  opacity: 1;
+}
 .lang-switch .lang-divider {
   color: var(--border-strong);
   font-weight: 400;
@@ -338,7 +347,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important;
   color: color-mix(in srgb, var(--badge-c) 72%, var(--text-main));
   border: 1px solid color-mix(in srgb, var(--badge-c) 22%, transparent);
 }
+.status-draft { --badge-c: #64748b; }
 .status-pending, .status-requested, .status-submitted { --badge-c: #f59e0b; }
+.status-under_review { --badge-c: #3b82f6; }
+.status-needs_changes { --badge-c: #f97316; }
 .status-accepted, .status-open, .status-approved { --badge-c: #10b981; }
 .status-rejected, .status-declined { --badge-c: #ef4444; }
 .status-paid, .status-hired { --badge-c: #3b82f6; }

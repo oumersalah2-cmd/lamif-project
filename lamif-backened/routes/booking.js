@@ -37,7 +37,7 @@ router.post('/hire', protect, requireRole('student'), requireVerified, async (re
   const { tutorId, subject, message, mode = 'online', startUtc, endUtc } = req.body
 
   const tutor = await Tutor.findById(tutorId)
-  if (!tutor || tutor.verificationStatus === 'rejected') throw httpError(404, 'Tutor not found')
+  if (!tutor || tutor.verificationStatus !== 'approved') throw httpError(404, 'Tutor not found or not approved for bookings')
 
   const booking = await createBooking({ studentId: req.user.id, tutor, subject, message, mode, startUtc, endUtc })
   res.status(201).json({ message: 'Booking request sent successfully', booking })

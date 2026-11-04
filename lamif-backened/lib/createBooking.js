@@ -20,6 +20,7 @@ async function assertTutorFree(tutorId, start, end, ignoreBookingId) {
 // Shared by direct hires and hires from a job proposal.
 // `hourlyRate` is the agreed rate; it and the total price are frozen on the booking.
 async function createBooking({ studentId, tutor, subject, message, mode, startUtc, endUtc, hourlyRate, jobId, status = 'requested' }) {
+  if (tutor.verificationStatus !== 'approved') throw httpError(403, 'This tutor is not approved to accept bookings')
   if (!tutor.isAvailable) throw httpError(400, 'This tutor is not taking new students right now')
   if (!tutor.teachingModes.includes(mode)) throw httpError(400, `This tutor does not offer ${mode.replace('_', '-')} sessions`)
   if (String(tutor.user._id || tutor.user) === String(studentId)) throw httpError(400, 'You cannot book yourself')

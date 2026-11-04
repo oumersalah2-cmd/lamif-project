@@ -132,9 +132,33 @@ function Dashboard() {
 
       {user.role === 'tutor' ? (
         <>
-          <div className="glass-card card row-between" style={{ marginBottom: '20px' }}>
-            <TutorBadges tutor={profile} />
-            <span className="small muted">Profile: {profile.verificationStatus === 'approved' ? 'Verified' : profile.verificationStatus === 'pending' ? 'Pending verification' : 'Not approved'}</span>
+          <div className="glass-card card" style={{
+            marginBottom: '20px',
+            borderLeft: profile.verificationStatus === 'approved' ? '4px solid #10b981'
+              : profile.verificationStatus === 'needs_changes' ? '4px solid #f97316'
+              : profile.verificationStatus === 'rejected' ? '4px solid #ef4444' : '4px solid #3b82f6'
+          }}>
+            <div className="row-between" style={{ flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
+              <div className="row" style={{ gap: '12px', alignItems: 'center' }}>
+                <TutorBadges tutor={profile} />
+                <div>
+                  <span className={`status-badge status-${profile.verificationStatus}`}>
+                    {statusLabel(profile.verificationStatus)}
+                  </span>
+                  <div className="small muted" style={{ marginTop: '4px' }}>
+                    {profile.verificationStatus === 'draft' && 'Your application is currently saved as a draft.'}
+                    {['submitted', 'pending'].includes(profile.verificationStatus) && 'Your application is submitted and queued for administrator review.'}
+                    {profile.verificationStatus === 'under_review' && 'Your application is currently under review by our admin team.'}
+                    {profile.verificationStatus === 'needs_changes' && `Revisions requested: "${profile.adminFeedback?.note || 'Please update your application details.'}"`}
+                    {profile.verificationStatus === 'approved' && 'Verified profile active. You are eligible to receive bookings and apply to jobs.'}
+                    {profile.verificationStatus === 'rejected' && `Application not approved: "${profile.adminFeedback?.rejectionReason || 'Review requirements not met.'}"`}
+                  </div>
+                </div>
+              </div>
+              <Link to="/profile/edit" className="btn-primary btn-sm" style={{ textDecoration: 'none' }}>
+                {profile.verificationStatus === 'approved' ? 'Edit Profile' : profile.verificationStatus === 'needs_changes' ? 'Update & Resubmit' : profile.verificationStatus === 'rejected' ? 'View Details' : 'Continue Application'}
+              </Link>
+            </div>
           </div>
           <div className="stat-grid">
             <StatTile value={formatMoney(sum(bookings.filter(b => DONE.includes(b.status))))} label={t('dash.earnedCompleted')} />

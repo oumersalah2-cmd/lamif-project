@@ -382,9 +382,14 @@ describe('tutor search and derived stats', () => {
     assert.deepEqual(abebe.badges, ['verified', 'rising_talent'])
   })
 
-  it('filters by mode and rate using the matching rate field', async () => {
-    const res = await call('GET', '/tutor/all?mode=in_person&maxRate=400')
-    assert.deepEqual(res.data.tutors.map(t => t.user.name), ['Dawit Alemu'])
+  it('filters by mode and rate using the matching rate field and excludes unapproved tutors', async () => {
+    // Dawit has in_person rate 300 but is pending verification, so he must not appear in search
+    const pendingSearch = await call('GET', '/tutor/all?mode=in_person&maxRate=400')
+    assert.deepEqual(pendingSearch.data.tutors.map(t => t.user.name), [])
+
+    // Abebe is approved with in_person rate 500
+    const approvedSearch = await call('GET', '/tutor/all?mode=in_person&maxRate=550')
+    assert.deepEqual(approvedSearch.data.tutors.map(t => t.user.name), ['Abebe Kebede'])
   })
 
   it('generates public work history from finished bookings', async () => {
@@ -531,5 +536,301 @@ describe('health and cors', () => {
     })
     assert.equal(res.status, 200)
     assert.equal(res.headers.get('access-control-allow-origin'), 'https://lamif-platform.vercel.app')
+  })
+})
+
+describe('tutor application and admin review system', () => {
+  let applicantUser
+  let applicantTutor
+  let applicantToken
+
+  before(async () => {
+    // Register and verify a fresh tutor user
+    await call('POST', '/auth/register', null, {
+      name: 'Applicant Tutor',
+      email: 'applicant@lamif.dev',
+      password: 'password123',
+      role: 'tutor'
+    })
+    applicantUser = await User.findOne({ email: 'applicant@lamif.dev' })
+    await User.updateOne({ _id: applicantUser._id }, { emailVerified: true })
+
+    const loginRes = await call('POST', '/auth/login', null, {
+      email: 'applicant@lamif.dev',
+      password: 'password123'
+    })
+    applicantToken = loginRes.data.token
+  })
+
+  it('allows saving an application draft with partial fields, which remains unlisted and unbookable', async () => {
+    // Save draft with partial fields (no education or rates yet)
+    const draftRes = await call('POST', '/tutor/profile', applicantToken, {
+      action: 'draft',
+      headline: 'Aspiring Economics Tutor',
+      bio: 'Draft bio work in progress'
+    })
+    assert.equal(draftRes.status, 201)
+    assert.equal(draftRes.data.tutor.verificationStatus, 'draft')
+    applicantTutor = draftRes.data.tutor
+
+    // Must not appear in public search
+    const searchRes = await call('GET', '/tutor/all')
+    assert.ok(!searchRes.data.tutors.some(t => t.user.name === 'Applicant Tutor'))
+
+    // Must not appear in public subjects
+    const subjRes = await call('GET', '/tutor/subjects')
+    assert.ok(!subjRes.data.subjects.includes('Economics'))
+
+    // Must not be directly bookable by students
+    const slot = nextSlot()
+    const bookRes = await call('POST', '/booking/hire', tokens.meron, {
+      tutorId: applicantTutor._id,
+      subject: 'Economics',
+      startUtc: slot.startUtc,
+      endUtc: slot.endUtc
+    })
+    assert.equal(bookRes.status, 404)
+
+    // Cannot submit job proposals while in draft
+    let job = await require('../models/Job').findOne({ status: 'open' })
+    if (!job) {
+      job = await require('../models/Job').create({
+        student: (await User.findOne({ email: 'meron@lamif.dev' }))._id,
+        title: 'Economics Help',
+        description: 'Need assistance with microeconomics',
+        subject: 'Economics',
+        level: 'university',
+        mode: 'online',
+        status: 'open'
+      })
+    }
+    const propRes = await call('POST', `/jobs/${job._id}/proposals`, applicantToken, {
+      coverLetter: 'I would love to help with this course',
+      rate: 300
+    })
+    assert.equal(propRes.status, 403)
+  })
+
+  it('validates submission fields and rejects duplicate ID or phone numbers', async () => {
+    // Attempting to submit without mandatory fields should fail
+    const invalidSubmit = await call('PUT', '/tutor/profile', applicantToken, {
+      action: 'submit',
+      headline: 'Economics Specialist'
+      // missing phone, idNumber, teachingStatement, agreementAccepted
+    })
+    assert.equal(invalidSubmit.status, 400)
+
+    // Setup another approved tutor with existing ID and phone
+    const TutorModel = require('../models/Tutor')
+    const hana = await TutorModel.findOne({ user: (await User.findOne({ email: 'hana@lamif.dev' }))._id })
+    hana.idNumber = 'ET-DUPLICATE-ID'
+    hana.phoneNumber = '0911223344'
+    await hana.save()
+
+    // Test duplicate ID number rejection
+    const duplicateIdSubmit = await call('PUT', '/tutor/profile', applicantToken, {
+      action: 'submit',
+      phoneNumber: '0988776655',
+      idNumber: 'ET-DUPLICATE-ID',
+      idDocumentFile: 'test-id.png',
+      bio: 'Certified tutor with deep subject knowledge.',
+      education: 'BA Economics, AAU',
+      subjects: ['Economics'],
+      teachingStatement: 'My teaching philosophy is centered around active student participation.',
+      agreementAccepted: true
+    })
+    assert.equal(duplicateIdSubmit.status, 409)
+
+    // Test duplicate phone number rejection
+    const duplicatePhoneSubmit = await call('PUT', '/tutor/profile', applicantToken, {
+      action: 'submit',
+      phoneNumber: '0911223344',
+      idNumber: 'ET-UNIQUE-ID-123',
+      idDocumentFile: 'test-id.png',
+      bio: 'Certified tutor with deep subject knowledge.',
+      education: 'BA Economics, AAU',
+      subjects: ['Economics'],
+      teachingStatement: 'My teaching philosophy is centered around active student participation.',
+      agreementAccepted: true
+    })
+    assert.equal(duplicatePhoneSubmit.status, 409)
+  })
+
+  it('submits valid application, keeps ID/certs private, and sanitizes public profile', async () => {
+    const fs = require('fs')
+    const path = require('path')
+    const TutorModel = require('../models/Tutor')
+
+    // Create a mock private ID document file in uploads_private
+    const privateDir = path.join(__dirname, '..', 'uploads_private')
+    if (!fs.existsSync(privateDir)) fs.mkdirSync(privateDir, { recursive: true })
+    const mockFilename = 'idDocument-test-private.png'
+    fs.writeFileSync(path.join(privateDir, mockFilename), 'fake-image-bytes')
+
+    // Submit valid application
+    const submitRes = await call('PUT', '/tutor/profile', applicantToken, {
+      action: 'submit',
+      phoneNumber: '0977665544',
+      idNumber: 'ET-UNIQUE-9988',
+      idDocumentFile: mockFilename,
+      headline: 'Economics & Statistics Tutor',
+      bio: 'Experienced educator preparing high school and university students.',
+      education: 'BSc in Economics, Addis Ababa University',
+      subjects: ['Economics'],
+      teachingModes: ['online'],
+      hourlyRateOnline: 350,
+      teachingStatement: 'Empowering students to think critically and solve real-world problems.',
+      agreementAccepted: true
+    })
+    assert.equal(submitRes.status, 200)
+    assert.equal(submitRes.data.tutor.verificationStatus, 'submitted')
+    assert.ok(submitRes.data.tutor.submittedAt)
+
+    // Attach private document filename and a certificate
+    await TutorModel.updateOne({ _id: applicantTutor._id }, {
+      idDocumentFile: mockFilename,
+      certificates: [{ name: 'Certified Macroeconomics Instructor', issuer: 'AAU', year: 2023, file: mockFilename }]
+    })
+
+    // Private document route access control:
+    // 1. Unauthenticated request rejected
+    const unauthRes = await fetch(`${baseUrl}/tutor/${applicantTutor._id}/document/id`)
+    assert.equal(unauthRes.status, 401)
+
+    // 2. Student (Meron) forbidden from viewing ID document
+    const studentRes = await fetch(`${baseUrl}/tutor/${applicantTutor._id}/document/id`, {
+      headers: { Authorization: `Bearer ${tokens.meron}` }
+    })
+    assert.equal(studentRes.status, 403)
+
+    // 3. Tutor owner can view their own ID document
+    const ownerRes = await fetch(`${baseUrl}/tutor/${applicantTutor._id}/document/id`, {
+      headers: { Authorization: `Bearer ${applicantToken}` }
+    })
+    assert.equal(ownerRes.status, 200)
+
+    // 4. Admin can view the ID document
+    const adminRes = await fetch(`${baseUrl}/tutor/${applicantTutor._id}/document/id`, {
+      headers: { Authorization: `Bearer ${tokens.admin}` }
+    })
+    assert.equal(adminRes.status, 200)
+
+    // 5. Public GET /tutor/:id for submitted tutor is hidden (404) for students
+    const publicViewRes = await call('GET', `/tutor/${applicantTutor._id}`, tokens.meron)
+    assert.equal(publicViewRes.status, 404)
+  })
+
+  it('handles admin review decisions: under_review, needs_changes, rejected, cooldown and approval', async () => {
+    const TutorModel = require('../models/Tutor')
+
+    // Admin views queue
+    const queue = await call('GET', '/admin/tutors?status=submitted', tokens.admin)
+    assert.ok(queue.data.tutors.some(t => t.user.email === 'applicant@lamif.dev'))
+
+    // Admin marks under_review
+    const underReview = await call('PUT', `/admin/tutors/${applicantTutor._id}/verification`, tokens.admin, {
+      status: 'under_review'
+    })
+    assert.equal(underReview.status, 200)
+    assert.equal(underReview.data.tutor.verificationStatus, 'under_review')
+
+    // Admin requests changes without note fails
+    const noNoteRes = await call('PUT', `/admin/tutors/${applicantTutor._id}/verification`, tokens.admin, {
+      status: 'needs_changes'
+    })
+    assert.equal(noNoteRes.status, 400)
+
+    // Admin requests changes with note
+    const changesRes = await call('PUT', `/admin/tutors/${applicantTutor._id}/verification`, tokens.admin, {
+      status: 'needs_changes',
+      note: 'Please provide more details on university level coursework.'
+    })
+    assert.equal(changesRes.status, 200)
+    assert.equal(changesRes.data.tutor.verificationStatus, 'needs_changes')
+    assert.equal(changesRes.data.tutor.adminFeedback.note, 'Please provide more details on university level coursework.')
+
+    // Applicant resubmits
+    const resubmitRes = await call('PUT', '/tutor/profile', applicantToken, {
+      action: 'submit',
+      agreementAccepted: true
+    })
+    assert.equal(resubmitRes.status, 200)
+    assert.equal(resubmitRes.data.tutor.verificationStatus, 'submitted')
+
+    // Admin rejects without reason fails
+    const noReasonRes = await call('PUT', `/admin/tutors/${applicantTutor._id}/verification`, tokens.admin, {
+      status: 'rejected'
+    })
+    assert.equal(noReasonRes.status, 400)
+
+    // Admin rejects with reason
+    const rejectRes = await call('PUT', `/admin/tutors/${applicantTutor._id}/verification`, tokens.admin, {
+      status: 'rejected',
+      reason: 'Provided credentials could not be verified by faculty.'
+    })
+    assert.equal(rejectRes.status, 200)
+    assert.equal(rejectRes.data.tutor.verificationStatus, 'rejected')
+    assert.ok(rejectRes.data.tutor.reapplyAllowedAt)
+
+    // Tutor cannot reapply before cooldown
+    const earlyReapply = await call('POST', '/tutor/reapply', applicantToken)
+    assert.equal(earlyReapply.status, 400)
+
+    // Fast-forward cooldown to the past
+    await TutorModel.updateOne({ _id: applicantTutor._id }, {
+      reapplyAllowedAt: new Date(Date.now() - 1000)
+    })
+
+    // Reapply succeeds and resets status to draft
+    const reapplyRes = await call('POST', '/tutor/reapply', applicantToken)
+    assert.equal(reapplyRes.status, 200)
+    assert.equal(reapplyRes.data.tutor.verificationStatus, 'draft')
+
+    // Applicant resubmits
+    await call('PUT', '/tutor/profile', applicantToken, {
+      action: 'submit',
+      agreementAccepted: true
+    })
+
+    // Admin approves application
+    const approveRes = await call('PUT', `/admin/tutors/${applicantTutor._id}/verification`, tokens.admin, {
+      status: 'approved'
+    })
+    assert.equal(approveRes.status, 200)
+    assert.equal(approveRes.data.tutor.verificationStatus, 'approved')
+
+    // Now approved tutor appears in search
+    const searchAfterApprove = await call('GET', '/tutor/all')
+    const found = searchAfterApprove.data.tutors.find(t => t.user.name === 'Applicant Tutor')
+    assert.ok(found)
+    // Sensitive fields must be stripped on public search
+    assert.equal(found.idNumber, undefined)
+    assert.equal(found.phoneNumber, undefined)
+    assert.equal(found.idDocumentFile, undefined)
+    assert.equal(found.adminFeedback, undefined)
+
+    // Now Economics appears in subjects
+    const subjectsAfterApprove = await call('GET', '/tutor/subjects')
+    assert.ok(subjectsAfterApprove.data.subjects.includes('Economics'))
+
+    // Now students can successfully book sessions with the approved tutor
+    const slot = nextSlot()
+    const bookingRes = await call('POST', '/booking/hire', tokens.meron, {
+      tutorId: applicantTutor._id,
+      subject: 'Economics',
+      mode: 'online',
+      startUtc: slot.startUtc,
+      endUtc: slot.endUtc
+    })
+    assert.equal(bookingRes.status, 201)
+    assert.equal(bookingRes.data.booking.subject, 'Economics')
+
+    // Now approved tutor can submit proposals on open jobs
+    const job = await require('../models/Job').findOne({ status: 'open' })
+    const proposalRes = await call('POST', `/jobs/${job._id}/proposals`, applicantToken, {
+      coverLetter: 'I am certified and ready to teach!',
+      rate: 350
+    })
+    assert.equal(proposalRes.status, 201)
   })
 })

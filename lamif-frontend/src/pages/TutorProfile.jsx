@@ -110,10 +110,35 @@ function TutorProfile() {
           <div className="glass-card card">
             <h3>About</h3>
             <p style={{ whiteSpace: 'pre-wrap' }}>{tutor.bio}</p>
+            {tutor.teachingStatement && (
+              <>
+                <h4 style={{ marginBottom: '4px' }}>Teaching Philosophy</h4>
+                <p style={{ fontStyle: 'italic', margin: '4px 0 16px', whiteSpace: 'pre-wrap' }}>"{tutor.teachingStatement}"</p>
+              </>
+            )}
             <h4 style={{ marginBottom: '8px' }}>Subjects</h4>
-            <div>{tutor.subjects.map(s => <span key={s} className="subject-tag">{s}</span>)}</div>
+            <div style={{ marginBottom: '16px' }}>{tutor.subjects.map(s => <span key={s} className="subject-tag">{s}</span>)}</div>
             <h4 style={{ marginBottom: '4px' }}>Education</h4>
             <p style={{ marginTop: 0 }}>{tutor.education}</p>
+            {tutor.experienceYears ? (
+              <p className="muted small" style={{ margin: '4px 0 12px' }}>
+                <strong>Experience:</strong> {tutor.experienceYears} years tutoring
+              </p>
+            ) : null}
+            {tutor.certificates && tutor.certificates.length > 0 && (
+              <div style={{ marginBottom: '16px' }}>
+                <h4 style={{ marginBottom: '6px' }}>Certifications & Credentials</h4>
+                <ul style={{ paddingLeft: '20px', margin: 0 }}>
+                  {tutor.certificates.map((c, i) => (
+                    <li key={i} className="small">
+                      <strong>{c.name}</strong>
+                      {c.issuer ? ` · ${c.issuer}` : ''}
+                      {c.year ? ` (${c.year})` : ''}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {tutor.cvUrl && (
               <a href={fileUrl(tutor.cvUrl)} target="_blank" rel="noreferrer" className="success-text" style={{ fontWeight: 600 }}><Icon name="file" size={16} /> View CV / qualifications</a>
             )}

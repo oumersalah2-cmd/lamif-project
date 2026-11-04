@@ -52,6 +52,7 @@ router.post('/:id/hire', protect, requireRole('student'), requireVerified, async
   const proposal = await ownedProposal(req)
   const { job, tutor } = proposal
   if (job.status !== 'open') throw httpError(400, 'This job is no longer open')
+  if (tutor.verificationStatus !== 'approved') throw httpError(403, 'Tutor must be approved before being hired')
 
   const mode = req.body.mode || (job.mode === 'either' ? tutor.teachingModes[0] : job.mode)
   const booking = await createBooking({

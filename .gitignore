@@ -7,5 +7,8 @@ build/
 .DS_Store
 *.log
 uploads/
+uploads_private/
 lamif-backened/uploads/*
 !lamif-backened/uploads/.gitkeep
+lamif-backened/uploads_private/*
+!lamif-backened/uploads_private/.gitkeep
