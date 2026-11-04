@@ -89,57 +89,59 @@ function Login() {
           className="glass-card"
           style={{
             marginTop: '1.5rem',
-            padding: '18px',
+            padding: '20px 18px',
             textAlign: 'center',
-            background: 'var(--primary-soft)',
-            border: '1px solid var(--primary-glow)',
-            borderRadius: 'var(--radius-md)'
+            background: 'var(--bg-card)',
+            border: '1.5px solid var(--border-glass)',
+            borderRadius: 'var(--radius-lg)'
           }}
         >
           <div style={{
-            width: '40px',
-            height: '40px',
+            width: '44px',
+            height: '44px',
             borderRadius: '50%',
-            background: 'var(--primary-strong)',
-            color: '#fff',
+            background: 'var(--primary-soft)',
+            color: 'var(--primary-strong)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 10px',
-            boxShadow: '0 4px 12px var(--primary-glow)'
+            margin: '0 auto 12px',
+            border: '1px solid var(--primary-glow)'
           }}>
-            <Icon name="telegram" size={20} />
+            <Icon name="mail" size={22} strokeWidth={2.5} />
           </div>
-          <p style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>
-            Account Not Verified
+          <p style={{ margin: '0 0 6px', fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)' }}>
+            Account Not Verified Yet
           </p>
-          <p className="muted" style={{ margin: '0 0 14px', fontSize: '0.85rem' }}>
-            Verify instantly with Telegram or use the email link.
+          <p style={{ margin: '0 0 12px', fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: 1.45 }}>
+            We sent a verification link to <strong>{formData.email.trim()}</strong>.
           </p>
-          <Link
-            to={`/verify-email?email=${encodeURIComponent(formData.email.trim())}&registered=true`}
-            className="btn-primary"
-            style={{
-              width: '100%',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              textDecoration: 'none',
-              marginBottom: '8px'
-            }}
-          >
-            <Icon name="telegram" size={18} />
-            <span>Verify via Telegram (1-Click)</span>
-          </Link>
+
+          <div style={{
+            background: 'rgba(245, 158, 11, 0.12)',
+            border: '1px solid rgba(245, 158, 11, 0.4)',
+            borderRadius: 'var(--radius-md)',
+            padding: '10px 14px',
+            margin: '0 0 14px',
+            textAlign: 'left',
+            fontSize: '0.86rem',
+            color: 'var(--text-main)',
+            lineHeight: 1.4
+          }}>
+            <strong style={{ display: 'block', fontWeight: 800, color: 'var(--text-main)', marginBottom: '2px' }}>
+              📁 Check your Spam / Junk folder!
+            </strong>
+            <span>Verification emails can sometimes land in spam or promotions.</span>
+          </div>
+
           <button
             type="button"
-            className="btn-secondary"
-            style={{ width: '100%', fontSize: '0.85rem' }}
+            className="btn-primary"
+            style={{ width: '100%', fontWeight: 700, padding: '0.8rem 1.2rem' }}
             onClick={handleResend}
             disabled={resending}
           >
-            {resending ? 'Sending...' : 'Resend verification email'}
+            {resending ? 'Sending...' : 'Resend Verification Email'}
           </button>
         </div>
       )}
