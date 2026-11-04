@@ -17,22 +17,22 @@
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Light theme */
-  --bg-main: #f7f8f7;
-  --bg-elevated: #eef4f0;
+  --bg-main: #ffffff;
+  --bg-elevated: #f8faf9;
   --bg-card: #ffffff;
-  --bg-glass: rgba(255, 255, 255, 0.86);
+  --bg-glass: rgba(255, 255, 255, 0.94);
   --text-main: #0c1a14;
   --text-muted: #5b6d64;
-  --border-glass: rgba(12, 40, 28, 0.1);
-  --border-strong: rgba(12, 40, 28, 0.16);
-  --primary-glow: rgba(16, 185, 129, 0.22);
-  --input-bg: #f1f5f3;
-  --card-shadow: 0 1px 2px rgba(12, 26, 20, 0.05);
-  --card-shadow-hover: 0 4px 16px rgba(12, 26, 20, 0.08);
-  --grid-line: rgba(12, 40, 28, 0.05);
+  --border-glass: rgba(12, 40, 28, 0.08);
+  --border-strong: rgba(12, 40, 28, 0.14);
+  --primary-glow: rgba(16, 185, 129, 0.18);
+  --input-bg: #f3f6f4;
+  --card-shadow: 0 1px 3px rgba(12, 26, 20, 0.05);
+  --card-shadow-hover: 0 4px 18px rgba(12, 26, 20, 0.08);
+  --grid-line: rgba(12, 40, 28, 0.04);
   --hero-gradient:
-    radial-gradient(900px 480px at 85% 0%, rgba(16, 185, 129, 0.14), transparent 60%),
-    radial-gradient(700px 420px at 0% 30%, rgba(59, 130, 246, 0.08), transparent 60%);
+    radial-gradient(900px 480px at 85% 0%, rgba(16, 185, 129, 0.10), transparent 60%),
+    radial-gradient(700px 420px at 0% 30%, rgba(59, 130, 246, 0.05), transparent 60%);
 }
 
 /* Dark theme: near-black with a green cast, after the brand artwork */

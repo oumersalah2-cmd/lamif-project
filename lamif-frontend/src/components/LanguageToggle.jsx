@@ -23,3 +23,4 @@ function LanguageToggle({ showIcon = true, className = '' }) {
 }
 
 export default LanguageToggle
+

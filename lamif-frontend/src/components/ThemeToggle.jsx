@@ -2,7 +2,6 @@ import { useState } from 'react'
 import Icon from './Icon'
 
 function ThemeToggle() {
-  // main.jsx applies the stored or system theme to <body> before the first render
   const [isDark, setIsDark] = useState(() => document.body.classList.contains('dark-mode'))
 
   const toggleTheme = () => {
@@ -10,13 +9,14 @@ function ThemeToggle() {
     setIsDark(next)
     document.body.classList.toggle('dark-mode', next)
     try {
+      localStorage.setItem('lamif_theme', next ? 'dark' : 'light')
       localStorage.setItem('theme', next ? 'dark' : 'light')
     } catch {
-      // Private mode: the choice just won't persist
+      // Private mode
     }
   }
 
-  const label = isDark ? 'Switch to light mode' : 'Switch to dark mode'
+  const label = isDark ? 'Switch to light mode (white)' : 'Switch to dark mode'
   return (
     <button
       type="button"
