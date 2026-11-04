@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
+import Icon from '../components/Icon'
 import api, { errorMessage } from '../lib/api'
 
 function VerifyEmail() {
@@ -11,7 +12,7 @@ function VerifyEmail() {
   const tokenParam = (searchParams.get('token') || '').trim()
   const isRegisteredFlow = searchParams.get('registered') === 'true'
 
-  // If there's a token AND it's NOT the registered selection flow, it came directly from email
+  // If there's a token AND it's NOT the registered selection flow, it came directly from email link
   const isEmailClick = !!tokenParam && !isRegisteredFlow
 
   const [token, setToken] = useState(tokenParam)
@@ -77,10 +78,9 @@ function VerifyEmail() {
           setIsVerified(true)
           setVerifiedMethod(res.data.method || 'telegram')
           clearInterval(interval)
-          // Automatically redirect to login after 2 seconds
           setTimeout(() => {
             navigate('/login')
-          }, 2200)
+          }, 2000)
         }
       } catch {
         // Silently retry
@@ -128,17 +128,19 @@ function VerifyEmail() {
   if (isEmailClick) {
     return (
       <AuthLayout>
-        <h1>Verify your email</h1>
-        {loading && <p className="muted">Verifying your email token...</p>}
-        {!loading && message && <p className="success-text">{message}</p>}
-        {!loading && error && <p className="error-text">{error}</p>}
-        {!loading && (
-          <p className="muted" style={{ marginTop: '2rem', textAlign: 'center' }}>
-            <Link to="/login" className="btn-primary" style={{ display: 'inline-block', padding: '10px 24px', textDecoration: 'none' }}>
-              Proceed to Log in
-            </Link>
-          </p>
-        )}
+        <div style={{ textAlign: 'center' }}>
+          <h1 style={{ marginBottom: '8px' }}>Verify Your Email</h1>
+          {loading && <p className="muted">Verifying your email token...</p>}
+          {!loading && message && <p className="success-text" style={{ fontSize: '1rem', margin: '16px 0' }}>{message}</p>}
+          {!loading && error && <p className="error-text" style={{ fontSize: '1rem', margin: '16px 0' }}>{error}</p>}
+          {!loading && (
+            <p style={{ marginTop: '2rem' }}>
+              <Link to="/login" className="btn-primary" style={{ width: '100%', textDecoration: 'none' }}>
+                Proceed to Log in
+              </Link>
+            </p>
+          )}
+        </div>
       </AuthLayout>
     )
   }
@@ -146,29 +148,44 @@ function VerifyEmail() {
   // Render Dual Option Verification Screen
   return (
     <AuthLayout>
-      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.8rem', marginBottom: '6px' }}>Verify Your Account</h1>
+      <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+        <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Verify Your Account</h1>
         <p className="muted" style={{ margin: 0, fontSize: '0.95rem' }}>
-          Choose your preferred method to activate your account:
+          Choose your preferred method to activate your account
         </p>
         {email && (
-          <div style={{ marginTop: '6px', fontWeight: 600, color: 'var(--primary, #4f46e5)' }}>
+          <div style={{ marginTop: '8px', fontWeight: 600, color: 'var(--primary-strong)' }}>
             {email}
           </div>
         )}
       </div>
 
       {isVerified ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '2rem 1.5rem',
-          background: 'rgba(34, 197, 94, 0.08)',
-          border: '1px solid rgba(34, 197, 94, 0.3)',
-          borderRadius: '14px',
-          margin: '1rem 0'
-        }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🎉</div>
-          <h2 style={{ fontSize: '1.4rem', color: '#16a34a', margin: '0 0 8px' }}>
+        <div
+          className="glass-card"
+          style={{
+            textAlign: 'center',
+            padding: '2.5rem 1.5rem',
+            background: 'var(--primary-soft)',
+            border: '1px solid var(--primary-glow)',
+            borderRadius: 'var(--radius-lg)'
+          }}
+        >
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: 'var(--primary-strong)',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+            boxShadow: '0 8px 20px var(--primary-glow)'
+          }}>
+            <Icon name="check" size={28} strokeWidth={2.5} />
+          </div>
+          <h2 style={{ fontSize: '1.5rem', margin: '0 0 8px', color: 'var(--text-main)' }}>
             Account Verified!
           </h2>
           <p className="muted" style={{ margin: '0 0 16px', fontSize: '0.95rem' }}>
@@ -176,13 +193,13 @@ function VerifyEmail() {
               ? 'Successfully verified via Telegram Bot.'
               : 'Your email has been verified.'}
           </p>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted, #666)' }}>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
             Redirecting you to login...
           </p>
           <Link
             to="/login"
             className="btn-primary"
-            style={{ display: 'inline-block', marginTop: '12px', padding: '10px 24px', textDecoration: 'none' }}
+            style={{ display: 'inline-flex', marginTop: '16px', textDecoration: 'none' }}
           >
             Log in now
           </Link>
@@ -190,35 +207,55 @@ function VerifyEmail() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* OPTION 1: TELEGRAM */}
-          <div style={{
-            border: '2px solid #2AABEE',
-            borderRadius: '14px',
-            padding: '20px',
-            background: 'rgba(42, 171, 238, 0.05)',
-            textAlign: 'center',
-            position: 'relative'
-          }}>
+          <div
+            className="glass-card"
+            style={{
+              borderRadius: 'var(--radius-lg)',
+              padding: '24px 20px',
+              border: '1.5px solid var(--primary)',
+              background: 'var(--bg-card)',
+              boxShadow: '0 4px 20px var(--primary-glow)',
+              textAlign: 'center',
+              position: 'relative'
+            }}
+          >
             <div style={{
               position: 'absolute',
-              top: '-12px',
+              top: '-11px',
               left: '50%',
               transform: 'translateX(-50%)',
-              background: '#2AABEE',
+              background: 'var(--primary-strong)',
               color: '#ffffff',
-              fontSize: '0.75rem',
+              fontSize: '0.72rem',
               fontWeight: 700,
-              padding: '2px 12px',
-              borderRadius: '12px',
+              padding: '3px 12px',
+              borderRadius: '999px',
               textTransform: 'uppercase',
-              letterSpacing: '0.5px'
+              letterSpacing: '0.06em',
+              boxShadow: '0 2px 8px var(--primary-glow)'
             }}>
-              Instant &amp; Free (Recommended)
+              Recommended • 1-Click Instant
             </div>
 
-            <div style={{ fontSize: '2rem', marginBottom: '8px', marginTop: '4px' }}>✈️</div>
-            <h3 style={{ margin: '0 0 6px', fontSize: '1.2rem' }}>Verify via Telegram Bot</h3>
-            <p className="muted" style={{ fontSize: '0.88rem', margin: '0 0 16px', lineHeight: 1.4 }}>
-              Click the button to open <b>@{botUsername}</b> and tap <b>START</b>. Your account verifies in 1 second!
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'var(--primary-soft)',
+              color: 'var(--primary-strong)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '6px auto 12px'
+            }}>
+              <Icon name="telegram" size={24} />
+            </div>
+
+            <h3 style={{ margin: '0 0 6px', fontSize: '1.25rem', color: 'var(--text-main)' }}>
+              Verify with Telegram
+            </h3>
+            <p className="muted" style={{ fontSize: '0.9rem', margin: '0 0 18px', lineHeight: 1.45 }}>
+              Tap the button to open <strong>@{botUsername}</strong> and tap <strong>START</strong>. Your account verifies instantly!
             </p>
 
             <a
@@ -227,42 +264,40 @@ function VerifyEmail() {
               rel="noopener noreferrer"
               className="btn-primary"
               style={{
+                width: '100%',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                width: '100%',
-                background: '#2AABEE',
-                borderColor: '#2AABEE',
-                color: '#fff',
-                fontSize: '1rem',
-                fontWeight: 600,
-                padding: '12px',
                 textDecoration: 'none',
-                borderRadius: '8px'
+                padding: '0.85rem 1.5rem',
+                fontSize: '1rem',
+                fontWeight: 600
               }}
             >
+              <Icon name="telegram" size={20} />
               <span>Open Telegram &amp; Tap Start</span>
             </a>
 
             <div style={{
-              marginTop: '12px',
-              fontSize: '0.82rem',
-              color: 'var(--text-muted, #71717a)',
+              marginTop: '14px',
+              fontSize: '0.85rem',
+              color: 'var(--text-muted)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '6px'
+              gap: '8px'
             }}>
               <span style={{
                 display: 'inline-block',
                 width: '8px',
                 height: '8px',
                 borderRadius: '50%',
-                background: '#2AABEE',
-                animation: 'pulse 1.5s infinite ease-in-out'
+                background: 'var(--primary)',
+                boxShadow: '0 0 0 3px var(--primary-soft)',
+                animation: 'pulse 1.8s infinite ease-in-out'
               }} />
-              Listening for your Telegram verification...
+              <span>Waiting for Telegram verification...</span>
             </div>
           </div>
 
@@ -271,34 +306,54 @@ function VerifyEmail() {
             alignItems: 'center',
             gap: '12px',
             margin: '4px 0',
-            color: 'var(--text-muted, #999)',
-            fontSize: '0.85rem'
+            color: 'var(--text-muted)',
+            fontSize: '0.82rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em'
           }}>
-            <div style={{ flex: 1, height: '1px', background: 'var(--border, #e4e4e7)' }} />
-            <span>OR</span>
-            <div style={{ flex: 1, height: '1px', background: 'var(--border, #e4e4e7)' }} />
+            <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }} />
+            <span>Or verify via email</span>
+            <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }} />
           </div>
 
           {/* OPTION 2: EMAIL */}
-          <div style={{
-            border: '1px solid var(--border, #e4e4e7)',
-            borderRadius: '14px',
-            padding: '18px',
-            background: 'var(--card-bg, #ffffff)',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '1.5rem', marginBottom: '6px' }}>📧</div>
-            <h3 style={{ margin: '0 0 6px', fontSize: '1.1rem' }}>Verify via Email Link</h3>
-            <p className="muted" style={{ fontSize: '0.88rem', margin: '0 0 14px', lineHeight: 1.4 }}>
-              Check your inbox (or spam folder) for the verification link we sent to <b>{email || 'your email'}</b>.
+          <div
+            className="glass-card"
+            style={{
+              borderRadius: 'var(--radius-lg)',
+              padding: '20px',
+              border: '1px solid var(--border-glass)',
+              background: 'var(--bg-card)',
+              textAlign: 'center'
+            }}
+          >
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: 'var(--input-bg)',
+              color: 'var(--text-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 10px'
+            }}>
+              <Icon name="mail" size={20} />
+            </div>
+
+            <h3 style={{ margin: '0 0 6px', fontSize: '1.1rem', color: 'var(--text-main)' }}>
+              Check your inbox
+            </h3>
+            <p className="muted" style={{ fontSize: '0.88rem', margin: '0 0 16px', lineHeight: 1.4 }}>
+              We sent a verification link to <strong>{email || 'your email'}</strong>. Click it to activate your account.
             </p>
 
             <button
               type="button"
-              className="btn-ghost"
+              className="btn-secondary"
               onClick={handleResend}
               disabled={resendCooldown > 0 || resending}
-              style={{ width: '100%', fontSize: '0.9rem', padding: '10px' }}
+              style={{ width: '100%', fontSize: '0.9rem' }}
             >
               {resending
                 ? 'Resending email...'
@@ -308,12 +363,12 @@ function VerifyEmail() {
             </button>
 
             {resendNotice && (
-              <p className="success-text" style={{ fontSize: '0.85rem', margin: '8px 0 0' }}>
+              <p className="success-text" style={{ fontSize: '0.85rem', margin: '10px 0 0' }}>
                 {resendNotice}
               </p>
             )}
             {error && (
-              <p className="error-text" style={{ fontSize: '0.85rem', margin: '8px 0 0' }}>
+              <p className="error-text" style={{ fontSize: '0.85rem', margin: '10px 0 0' }}>
                 {error}
               </p>
             )}

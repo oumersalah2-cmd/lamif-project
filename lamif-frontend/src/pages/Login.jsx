@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
+import Icon from '../components/Icon'
 import api, { errorMessage } from '../lib/api'
 import { saveSession } from '../lib/session'
 
@@ -84,29 +85,57 @@ function Login() {
       </form>
       {message && <p className="error-text" style={{ marginTop: '1rem', textAlign: 'center' }}>{message}</p>}
       {needsVerification && (
-        <div style={{ marginTop: '1.25rem' }}>
+        <div
+          className="glass-card"
+          style={{
+            marginTop: '1.5rem',
+            padding: '18px',
+            textAlign: 'center',
+            background: 'var(--primary-soft)',
+            border: '1px solid var(--primary-glow)',
+            borderRadius: 'var(--radius-md)'
+          }}
+        >
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            background: 'var(--primary-strong)',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 10px',
+            boxShadow: '0 4px 12px var(--primary-glow)'
+          }}>
+            <Icon name="telegram" size={20} />
+          </div>
+          <p style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>
+            Account Not Verified
+          </p>
+          <p className="muted" style={{ margin: '0 0 14px', fontSize: '0.85rem' }}>
+            Verify instantly with Telegram or use the email link.
+          </p>
           <Link
             to={`/verify-email?email=${encodeURIComponent(formData.email.trim())}&registered=true`}
             className="btn-primary"
             style={{
-              display: 'flex',
+              width: '100%',
+              display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              width: '100%',
-              marginBottom: '0.75rem',
               textDecoration: 'none',
-              background: '#2AABEE',
-              color: '#fff',
-              fontWeight: 600
+              marginBottom: '8px'
             }}
           >
-            <span>✈️ Verify via Telegram (1-Click)</span>
+            <Icon name="telegram" size={18} />
+            <span>Verify via Telegram (1-Click)</span>
           </Link>
           <button
             type="button"
-            className="btn-ghost"
-            style={{ width: '100%' }}
+            className="btn-secondary"
+            style={{ width: '100%', fontSize: '0.85rem' }}
             onClick={handleResend}
             disabled={resending}
           >
