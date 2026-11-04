@@ -7,7 +7,7 @@
     "dev": "concurrently \"npm start --prefix lamif-backened\" \"npm run dev --prefix lamif-frontend\"",
     "install:all": "npm install && npm install --prefix lamif-backened && npm install --prefix lamif-frontend",
     "test": "npm test --prefix lamif-backened",
-    "build": "npm run build --prefix lamif-frontend",
+    "build": "npm install --prefix lamif-frontend && npm run build --prefix lamif-frontend && mkdir -p dist && cp -r lamif-frontend/dist/* dist/",
     "lint": "npm run lint --prefix lamif-frontend"
   },
   "repository": {

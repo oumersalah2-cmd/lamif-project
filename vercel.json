@@ -1,0 +1,7 @@
+{
+  "buildCommand": "npm install --prefix lamif-frontend && npm run build --prefix lamif-frontend",
+  "outputDirectory": "lamif-frontend/dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
