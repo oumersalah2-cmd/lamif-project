@@ -531,11 +531,64 @@ describe('health and cors', () => {
   })
 
   it('allows requests from valid CORS origins', async () => {
+    const origins = [
+      'https://www.httpslamif-platfor.me',
+      'https://httpslamif-platfor.me',
+      'https://lamif-platform.vercel.app'
+    ]
+    for (const origin of origins) {
+      const res = await fetch(baseUrl + '/health', {
+        headers: { Origin: origin }
+      })
+      assert.equal(res.status, 200)
+      assert.equal(res.headers.get('access-control-allow-origin'), origin)
+      assert.equal(res.headers.get('access-control-allow-credentials'), 'true')
+    }
+  })
+
+  it('handles CORS OPTIONS preflight requests for allowed origins', async () => {
     const res = await fetch(baseUrl + '/health', {
-      headers: { Origin: 'https://lamif-platform.vercel.app' }
+      method: 'OPTIONS',
+      headers: {
+        Origin: 'https://www.httpslamif-platfor.me',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'Content-Type, Authorization'
+      }
+    })
+    assert.equal(res.status, 204)
+    assert.equal(res.headers.get('access-control-allow-origin'), 'https://www.httpslamif-platfor.me')
+    assert.equal(res.headers.get('access-control-allow-credentials'), 'true')
+    const methods = res.headers.get('access-control-allow-methods')
+    assert.ok(methods.includes('POST') && methods.includes('GET') && methods.includes('OPTIONS'))
+  })
+
+  it('normalizes malformed double-slash paths like //api/health without skipping CORS', async () => {
+    const rootUrl = baseUrl.replace(/\/api$/, '')
+    const res = await fetch(rootUrl + '//api/health', {
+      headers: { Origin: 'https://httpslamif-platfor.me' }
     })
     assert.equal(res.status, 200)
-    assert.equal(res.headers.get('access-control-allow-origin'), 'https://lamif-platform.vercel.app')
+    const json = await res.json()
+    assert.deepEqual(json, { status: 'ok' })
+    assert.equal(res.headers.get('access-control-allow-origin'), 'https://httpslamif-platfor.me')
+    assert.equal(res.headers.get('access-control-allow-credentials'), 'true')
+  })
+
+  it('attaches CORS headers even on 404 and route errors', async () => {
+    const res = await fetch(baseUrl + '/nonexistent-route-404', {
+      headers: { Origin: 'https://www.httpslamif-platfor.me' }
+    })
+    assert.equal(res.status, 404)
+    assert.equal(res.headers.get('access-control-allow-origin'), 'https://www.httpslamif-platfor.me')
+    assert.equal(res.headers.get('access-control-allow-credentials'), 'true')
+  })
+
+  it('does not attach CORS headers to unauthorized origins without crashing', async () => {
+    const res = await fetch(baseUrl + '/health', {
+      headers: { Origin: 'https://malicious-site.example.com' }
+    })
+    assert.equal(res.status, 200)
+    assert.equal(res.headers.get('access-control-allow-origin'), null)
   })
 })
 

@@ -15,41 +15,24 @@ const adminRoutes = require('./routes/admin')
 const publicRoutes = require('./routes/public')
 const protect = require('./middleware/authMiddleware')
 const errorHandler = require('./middleware/errorHandler')
+const { corsOptions, isAllowedOrigin, normalizeOrigin } = require('./lib/corsConfig')
 
 const app = express()
 app.set('trust proxy', 1)
 
-const normalizeOrigin = (url) => (url ? url.trim().replace(/\/+$/, '') : '')
+// Normalize malformed request URLs (e.g. collapsing multiple leading slashes like //api/... -> /api/...)
+// This ensures routes match properly and malformed paths do not bypass routing or CORS.
+app.use((req, res, next) => {
+  if (req.url && req.url.startsWith('//')) {
+    req.url = '/' + req.url.replace(/^\/+/, '')
+  }
+  next()
+})
 
-const allowedOrigins = [
-  'https://lamif-platform.vercel.app',
-  'http://localhost:5173',
-  normalizeOrigin(process.env.CLIENT_URL)
-].filter(Boolean)
+// CORS middleware handles both regular requests and preflight OPTIONS requests across all routes
+app.use(cors(corsOptions))
+app.options(/.*/, cors(corsOptions))
 
-const isAllowedOrigin = (cleanOrigin) => {
-  if (!cleanOrigin) return true
-  if (allowedOrigins.includes(cleanOrigin)) return true
-  // Allow any Vercel deployment preview or production domain
-  if (/^https:\/\/[a-z0-9-]+(?:\.vercel\.app|-oumersalah2-cmds-projects\.vercel\.app)$/i.test(cleanOrigin)) return true
-  if (cleanOrigin.endsWith('.vercel.app')) return true
-  return false
-}
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (e.g., mobile apps, curl, or server-to-server health checks)
-      if (!origin) return callback(null, true)
-      const cleanOrigin = normalizeOrigin(origin)
-      if (isAllowedOrigin(cleanOrigin)) {
-        return callback(null, true)
-      }
-      return callback(new Error(`Origin ${origin} not allowed by CORS`))
-    },
-    credentials: true
-  })
-)
 app.use(express.json())
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 

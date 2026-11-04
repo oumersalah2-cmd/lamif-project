@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Avatar from '../components/Avatar'
 import Icon from '../components/Icon'
-import api, { API_URL, errorMessage, fileUrl } from '../lib/api'
+import api, { API_URL, apiUrl, errorMessage, fileUrl } from '../lib/api'
 import { getUser } from '../lib/session'
 import { DAYS, formatDate, statusLabel } from '../lib/format'
 import { useLanguage } from '../lib/LanguageContext'
@@ -70,7 +70,7 @@ function ProfileEditor() {
           agreementAccepted: tutor.agreementAccepted ?? false
         })
       })
-      .catch(() => {}) // 404: no application yet
+      .catch(() => { }) // 404: no application yet
       .finally(() => setLoading(false))
   }, [])
 
@@ -373,7 +373,7 @@ function ProfileEditor() {
               <p className="small success-text" style={{ margin: '6px 0 0' }}>
                 ✓ ID Document previously uploaded.{' '}
                 <a
-                  href={`${API_URL}/api/tutor/${existing._id}/document/id?token=${token}`}
+                  href={apiUrl(`/tutor/${existing._id}/document/id?token=${token}`)}
                   target="_blank"
                   rel="noreferrer"
                   style={{ textDecoration: 'underline' }}
@@ -482,7 +482,7 @@ function ProfileEditor() {
                   </div>
                   {existing?._id && cert.file && (
                     <a
-                      href={`${API_URL}/api/tutor/${existing._id}/document/certificate?index=${index}&token=${token}`}
+                      href={apiUrl(`/tutor/${existing._id}/document/certificate?index=${index}&token=${token}`)}
                       target="_blank"
                       rel="noreferrer"
                       className="btn-ghost btn-sm"

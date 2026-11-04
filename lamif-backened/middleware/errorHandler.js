@@ -1,8 +1,19 @@
 const multer = require('multer')
+const { isAllowedOrigin, normalizeOrigin } = require('../lib/corsConfig')
 
 // Express 5 forwards rejected promises from async routes here
 // eslint-disable-next-line no-unused-vars
 const errorHandler = (err, req, res, next) => {
+  // Ensure CORS headers are always attached to error responses for allowed origins
+  const origin = req.headers?.origin
+  if (origin && isAllowedOrigin(origin) && !res.headersSent) {
+    const clean = normalizeOrigin(origin)
+    res.setHeader('Access-Control-Allow-Origin', clean)
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept')
+  }
+
   if (err.status && err.status < 500) {
     return res.status(err.status).json({ message: err.message })
   }

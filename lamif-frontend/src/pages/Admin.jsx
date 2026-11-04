@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Avatar from '../components/Avatar'
 import Icon from '../components/Icon'
-import api, { API_URL, errorMessage, fileUrl } from '../lib/api'
+import api, { API_URL, apiUrl, errorMessage, fileUrl } from '../lib/api'
 import { formatDate, formatMoney, statusLabel } from '../lib/format'
 
 const FILTERS = [
@@ -267,7 +267,7 @@ function Admin() {
                 <div className="row" style={{ gap: '12px', flexWrap: 'wrap', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
                   {selectedTutor.idDocumentFile ? (
                     <a
-                      href={`${API_URL}/api/tutor/${selectedTutor._id}/document/id?token=${token}`}
+                      href={apiUrl(`/tutor/${selectedTutor._id}/document/id?token=${token}`)}
                       target="_blank"
                       rel="noreferrer"
                       className="btn-primary btn-sm"
@@ -310,7 +310,7 @@ function Admin() {
                         </div>
                         {cert.file ? (
                           <a
-                            href={`${API_URL}/api/tutor/${selectedTutor._id}/document/certificate?index=${idx}&token=${token}`}
+                            href={apiUrl(`/tutor/${selectedTutor._id}/document/certificate?index=${idx}&token=${token}`)}
                             target="_blank"
                             rel="noreferrer"
                             className="btn-ghost btn-sm"
