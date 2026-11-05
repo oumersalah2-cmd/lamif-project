@@ -14,12 +14,27 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: function () {
+      return !this.googleId && this.authProvider !== 'google'
+    }
   },
   role: {
     type: String,
     enum: ['student', 'tutor', 'admin'],
     required: true
+  },
+  googleId: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
+  },
+  avatar: {
+    type: String
   },
   savedTutors: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -37,7 +52,7 @@ const userSchema = new mongoose.Schema({
   },
   verificationMethod: {
     type: String,
-    enum: ['email', 'telegram', 'manual', null],
+    enum: ['email', 'telegram', 'manual', 'google', null],
     default: null
   },
   verificationTokenHash: {

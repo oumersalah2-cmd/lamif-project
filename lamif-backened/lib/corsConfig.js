@@ -59,6 +59,18 @@ function isAllowedOrigin(origin) {
 const ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
 const ALLOWED_HEADERS = ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 
+// Get a single primary public frontend URL for outgoing emails and links (never a comma-separated list)
+function getPrimaryClientUrl() {
+  const envVal = process.env.FRONTEND_URL || process.env.CLIENT_URL || ''
+  if (envVal) {
+    const first = envVal.split(',')[0].trim().replace(/\/+$/, '')
+    if (first) return first
+  }
+  return process.env.NODE_ENV === 'production'
+    ? 'https://www.httpslamif-platfor.me'
+    : 'http://localhost:5173'
+}
+
 const corsOptions = {
   origin: (origin, callback) => {
     // Allow non-browser requests with no origin (e.g. mobile apps, curl, server-to-server)
@@ -80,6 +92,7 @@ const corsOptions = {
 module.exports = {
   normalizeOrigin,
   isAllowedOrigin,
+  getPrimaryClientUrl,
   corsOptions,
   ALLOWED_METHODS,
   ALLOWED_HEADERS,

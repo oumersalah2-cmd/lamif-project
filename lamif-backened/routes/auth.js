@@ -3,6 +3,7 @@ const router = express.Router()
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const rateLimit = require('express-rate-limit')
+const crypto = require('crypto')
 const User = require('../models/User')
 const protect = require('../middleware/authMiddleware')
 const httpError = require('../lib/httpError')
@@ -48,11 +49,23 @@ const resendLimiter = rateLimit({
   message: { message: 'Too many verification email requests. Please try again later.' }
 })
 
+const googleLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: getClientIp,
+  validate: false,
+  message: { message: 'Too many Google authentication attempts. Please try again later.' }
+})
+
 const publicUser = user => ({
   id: user._id,
   name: user.name,
   email: user.email,
   role: user.role,
+  avatar: user.avatar || '',
+  authProvider: user.authProvider || 'local',
   emailVerified: !!user.emailVerified
 })
 
@@ -213,6 +226,142 @@ router.get('/me', protect, async (req, res) => {
   const user = await User.findById(req.user.id)
   if (!user) throw httpError(404, 'User not found')
   res.json({ user: publicUser(user) })
+})
+
+router.post('/google', googleLimiter, async (req, res) => {
+  const { credential, idToken, accessToken, role, isDevDemo } = req.body
+  const tokenToVerify = credential || idToken
+
+  if (!tokenToVerify && !accessToken && !isDevDemo) {
+    throw httpError(400, 'Google token is required')
+  }
+
+  let googleUser = null
+
+  // 1. Simulated/mock token support for offline tests and local development demo
+  if (
+    (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') &&
+    (isDevDemo || (typeof tokenToVerify === 'string' && tokenToVerify.startsWith('mock-google:')))
+  ) {
+    if (typeof tokenToVerify === 'string' && tokenToVerify.startsWith('mock-google:')) {
+      const parts = tokenToVerify.split(':')
+      googleUser = {
+        sub: parts[1] || 'mock-google-sub-1',
+        email: parts[2] || 'googleuser@example.com',
+        name: parts[3] || 'Google User',
+        picture: parts[4] || ''
+      }
+    } else {
+      googleUser = {
+        sub: req.body.sub || 'demo-google-sub-' + Date.now(),
+        email: req.body.email || 'demo.google@lamif.dev',
+        name: req.body.name || 'Google Demo User',
+        picture: req.body.picture || ''
+      }
+    }
+  } else if (tokenToVerify) {
+    // 2. Verify Google ID token via Google tokeninfo endpoint
+    try {
+      const gRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(tokenToVerify)}`)
+      if (!gRes.ok) {
+        throw new Error('Google token verification failed')
+      }
+      const data = await gRes.json()
+      if (process.env.GOOGLE_CLIENT_ID && data.aud !== process.env.GOOGLE_CLIENT_ID) {
+        throw httpError(401, 'Google Client ID mismatch')
+      }
+      googleUser = {
+        sub: data.sub,
+        email: data.email,
+        name: data.name,
+        picture: data.picture
+      }
+    } catch (err) {
+      if (err.status) throw err
+      console.error('[GOOGLE ID TOKEN ERROR]', err.message || err)
+      throw httpError(401, 'Invalid or expired Google token')
+    }
+  } else if (accessToken) {
+    // 3. Verify Google Access Token via Google userinfo endpoint
+    try {
+      const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      })
+      if (!gRes.ok) {
+        throw new Error('Google userinfo request failed')
+      }
+      const data = await gRes.json()
+      googleUser = {
+        sub: data.sub,
+        email: data.email,
+        name: data.name,
+        picture: data.picture
+      }
+    } catch (err) {
+      if (err.status) throw err
+      console.error('[GOOGLE ACCESS TOKEN ERROR]', err.message || err)
+      throw httpError(401, 'Invalid or expired Google access token')
+    }
+  }
+
+  if (!googleUser || !googleUser.email) {
+    throw httpError(400, 'Could not retrieve email from Google account')
+  }
+
+  const cleanEmail = String(googleUser.email).trim().toLowerCase()
+  if (!EMAIL_PATTERN.test(cleanEmail)) {
+    throw httpError(400, 'Invalid Google email')
+  }
+
+  let user = await User.findOne({ $or: [{ googleId: googleUser.sub }, { email: cleanEmail }] })
+
+  if (user) {
+    let dirty = false
+    if (!user.googleId) {
+      user.googleId = googleUser.sub
+      dirty = true
+    }
+    if (!user.emailVerified) {
+      user.emailVerified = true
+      user.verificationMethod = 'google'
+      dirty = true
+    }
+    if (!user.avatar && googleUser.picture) {
+      user.avatar = googleUser.picture
+      dirty = true
+    }
+    if (dirty) {
+      await user.save()
+    }
+  } else {
+    const chosenRole = ['student', 'tutor'].includes(role) ? role : 'student'
+    const randomPassword = crypto.randomBytes(32).toString('hex')
+    const hashedPassword = await bcrypt.hash(randomPassword, 10)
+
+    user = await User.create({
+      name: (googleUser.name && String(googleUser.name).trim()) || cleanEmail.split('@')[0],
+      email: cleanEmail,
+      password: hashedPassword,
+      role: chosenRole,
+      googleId: googleUser.sub,
+      authProvider: 'google',
+      avatar: googleUser.picture || '',
+      emailVerified: true,
+      verificationMethod: 'google'
+    })
+  }
+
+  const token = jwt.sign(
+    { id: user._id, role: user.role, emailVerified: !!user.emailVerified },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  )
+
+  res.status(200).json({
+    message: 'Google authentication successful',
+    token,
+    user: publicUser(user)
+  })
 })
 
 module.exports = router

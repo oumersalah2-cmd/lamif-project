@@ -10,6 +10,7 @@ const httpError = require('../lib/httpError')
 const notify = require('../lib/notify')
 const { sendMail } = require('../lib/mailer')
 const { FINISHED_STATUSES } = require('../lib/bookingLifecycle')
+const { getPrimaryClientUrl } = require('../lib/corsConfig')
 
 router.use(protect, requireRole('admin'))
 
@@ -93,7 +94,7 @@ router.put('/tutors/:id/verification', async (req, res) => {
 
   // Send email notification
   try {
-    const clientUrl = process.env.CLIENT_URL || 'https://lamif-platform.vercel.app'
+    const clientUrl = getPrimaryClientUrl()
     const emailSubjects = {
       approved: 'Congratulations! Your LAMIF Tutor Application is Approved',
       needs_changes: 'Action Required: Changes Needed on Your LAMIF Tutor Application',

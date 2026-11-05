@@ -134,6 +134,31 @@ describe('auth and email verification', () => {
     assert.equal(login.data.user.emailVerified, true)
   })
 
+  it('generates a clean single verification URL without commas when CLIENT_URL has multiple origins', async () => {
+    const origClientUrl = process.env.CLIENT_URL
+    process.env.CLIENT_URL = 'https://www.httpslamif-platfor.me,https://httpslamif-platfor.me'
+    const mailer = require('../lib/mailer')
+    const originalSendMail = mailer.sendMail
+    let sentMail
+    mailer.sendMail = async message => {
+      sentMail = message
+    }
+    try {
+      await call('POST', '/auth/register', null, {
+        name: 'Comma Url Test',
+        email: 'comma-url-test@example.com',
+        password: 'password123',
+        role: 'student'
+      })
+    } finally {
+      mailer.sendMail = originalSendMail
+      process.env.CLIENT_URL = origClientUrl
+    }
+    assert.ok(sentMail)
+    assert.doesNotMatch(sentMail.text, /,https:\/\//)
+    assert.match(sentMail.text, /https:\/\/www\.httpslamif-platfor\.me\/verify-email\?token=/)
+  })
+
   it('verifies a user via Telegram update and updates status', async () => {
     const email = 'telegram-verify@example.com'
     const reg = await call('POST', '/auth/register', null, { name: 'Telegram User', email, password: 'password123', role: 'student' })
@@ -369,6 +394,69 @@ describe('auth and email verification', () => {
     const startRes = await call('POST', '/messages/conversations', token, { userId: hana.user._id })
     assert.equal(startRes.status, 403)
     assert.equal(startRes.data.code, 'EMAIL_NOT_VERIFIED')
+  })
+})
+
+describe('google authentication', () => {
+  it('rejects google auth requests with missing token', async () => {
+    const res = await call('POST', '/auth/google', null, {})
+    assert.equal(res.status, 400)
+    assert.match(res.data.message, /token is required/i)
+  })
+
+  it('registers a new user as student via Google auth with pre-verified email', async () => {
+    const res = await call('POST', '/auth/google', null, {
+      credential: 'mock-google:sub-g-student:newstudent@gmail.com:Google Student:https://example.com/avatar.jpg',
+      role: 'student'
+    })
+    assert.equal(res.status, 200)
+    assert.ok(res.data.token)
+    assert.equal(res.data.user.email, 'newstudent@gmail.com')
+    assert.equal(res.data.user.name, 'Google Student')
+    assert.equal(res.data.user.role, 'student')
+    assert.equal(res.data.user.emailVerified, true)
+    assert.equal(res.data.user.authProvider, 'google')
+
+    const dbUser = await User.findOne({ email: 'newstudent@gmail.com' })
+    assert.equal(dbUser.googleId, 'sub-g-student')
+    assert.equal(dbUser.verificationMethod, 'google')
+  })
+
+  it('registers a new user as tutor via Google auth', async () => {
+    const res = await call('POST', '/auth/google', null, {
+      credential: 'mock-google:sub-g-tutor:newtutor@gmail.com:Google Tutor:',
+      role: 'tutor'
+    })
+    assert.equal(res.status, 200)
+    assert.equal(res.data.user.email, 'newtutor@gmail.com')
+    assert.equal(res.data.user.role, 'tutor')
+    assert.equal(res.data.user.emailVerified, true)
+  })
+
+  it('links Google account to an existing unverified user and logs them in', async () => {
+    // Create an unverified local account first
+    await call('POST', '/auth/register', null, {
+      name: 'Existing Local',
+      email: 'existing.local@gmail.com',
+      password: 'password123',
+      role: 'student'
+    })
+    const beforeUser = await User.findOne({ email: 'existing.local@gmail.com' })
+    assert.equal(beforeUser.emailVerified, false)
+
+    // Log in with Google matching the same email
+    const res = await call('POST', '/auth/google', null, {
+      credential: 'mock-google:sub-existing-123:existing.local@gmail.com:Existing Local:'
+    })
+    assert.equal(res.status, 200)
+    assert.ok(res.data.token)
+    assert.equal(res.data.user.email, 'existing.local@gmail.com')
+    assert.equal(res.data.user.emailVerified, true)
+
+    const afterUser = await User.findOne({ email: 'existing.local@gmail.com' })
+    assert.equal(afterUser.googleId, 'sub-existing-123')
+    assert.equal(afterUser.emailVerified, true)
+    assert.equal(afterUser.verificationMethod, 'google')
   })
 })
 

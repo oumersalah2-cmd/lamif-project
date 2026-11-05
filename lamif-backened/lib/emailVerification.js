@@ -1,5 +1,6 @@
 const crypto = require('crypto')
 const mailer = require('./mailer')
+const { getPrimaryClientUrl } = require('./corsConfig')
 
 function hashToken(token) {
   return crypto.createHash('sha256').update(String(token || '')).digest('hex')
@@ -12,7 +13,7 @@ async function issueVerification(user) {
   user.verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000)
   await user.save()
 
-  const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/+$/, '')
+  const clientUrl = getPrimaryClientUrl()
   const link = `${clientUrl}/verify-email?token=${encodeURIComponent(token)}`
   const text = `Verify your LAMIF email address by opening this link:\n\n${link}\n\nThis link expires in 24 hours.`
   const html = `<p>Verify your LAMIF email address by clicking the link below:</p><p><a href="${link}">Verify your email</a></p><p>This link expires in 24 hours.</p>`

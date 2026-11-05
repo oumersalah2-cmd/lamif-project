@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
+import GoogleAuthButton from '../components/GoogleAuthButton'
 import Icon from '../components/Icon'
 import api, { errorMessage } from '../lib/api'
 import { saveSession } from '../lib/session'
@@ -57,9 +58,17 @@ function Login() {
   return (
     <AuthLayout>
       <h1>{t('auth.welcomeBack')}</h1>
-      <p className="muted" style={{ marginTop: 0, marginBottom: '28px' }}>
+      <p className="muted" style={{ marginTop: 0, marginBottom: '24px' }}>
         {t('auth.loginSubtitle')}
       </p>
+
+      <GoogleAuthButton
+        onError={errMsg => setMessage(errMsg)}
+      />
+
+      <div className="auth-divider">
+        <span>{t('auth.orDivider')}</span>
+      </div>
 
       <form onSubmit={handleSubmit}>
         <label className="field-label" htmlFor="login-email">{t('auth.email')}</label>

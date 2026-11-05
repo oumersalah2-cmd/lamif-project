@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
+import GoogleAuthButton from '../components/GoogleAuthButton'
 import Icon from '../components/Icon'
 import api, { errorMessage } from '../lib/api'
 import { useLanguage } from '../lib/LanguageContext'
@@ -78,6 +79,15 @@ function Register() {
               <span>{option.text}</span>
             </button>
           ))}
+        </div>
+
+        <GoogleAuthButton
+          role={formData.role}
+          onError={errMsg => setMessage(errMsg)}
+        />
+
+        <div className="auth-divider">
+          <span>{t('auth.orDivider')}</span>
         </div>
 
         <label className="field-label" htmlFor="reg-name">{t('auth.fullName')}</label>
