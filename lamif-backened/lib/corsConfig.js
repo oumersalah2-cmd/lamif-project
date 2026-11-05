@@ -45,6 +45,14 @@ function isAllowedOrigin(origin) {
     return true
   }
 
+  // Match any Vercel deployment preview or production domain
+  if (/^https:\/\/[a-z0-9-]+(?:\.vercel\.app|-oumersalah2-cmds-projects\.vercel\.app)$/i.test(clean)) {
+    return true
+  }
+  if (clean.endsWith('.vercel.app')) {
+    return true
+  }
+
   return false
 }
 
