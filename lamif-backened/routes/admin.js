@@ -60,6 +60,8 @@ router.put('/tutors/:id/verification', async (req, res) => {
   const tutor = await Tutor.findById(req.params.id).populate('user', 'name email')
   if (!tutor) throw httpError(404, 'Tutor not found')
 
+  if (tutor.verificationStatus === 'draft') throw httpError(400, 'This application has not been submitted yet')
+
   if (status === 'needs_changes' && (!note || !note.trim())) {
     throw httpError(400, 'Please provide a note specifying what changes are needed.')
   }

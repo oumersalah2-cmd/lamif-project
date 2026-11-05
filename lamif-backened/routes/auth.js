@@ -12,21 +12,28 @@ const { issueVerification, hashToken } = require('../lib/emailVerification')
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 // Rate limiters for auth endpoints
-const getClientIp = (req) => {
-  const forwarded = req.headers['x-forwarded-for']
-  const raw = forwarded ? String(forwarded).split(',')[0] : (req.ip || req.socket?.remoteAddress || '127.0.0.1')
-  // Strip trailing port if present (Azure proxy attaches :port)
-  return String(raw).trim().replace(/:\d+$/, '')
-}
+// 'trust proxy' is set in app.js, so req.ip is the real client IP (X-Forwarded-For can't be spoofed past the proxy)
+// Azure's proxy may append :port to the address, so strip it
+const getClientIp = (req) => String(req.ip || req.socket?.remoteAddress || '127.0.0.1').replace(/:\d+$/, '')
 
 const registerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 20,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: getClientIp,
   validate: false,
   message: { message: 'Too many registration requests. Please try again later.' }
+})
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: getClientIp,
+  validate: false,
+  message: { message: 'Too many login attempts. Please try again later.' }
 })
 
 const verifyLimiter = rateLimit({
@@ -41,7 +48,7 @@ const verifyLimiter = rateLimit({
 
 const resendLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: getClientIp,
@@ -92,9 +99,8 @@ router.post('/register', registerLimiter, async (req, res) => {
     emailVerified: false
   })
 
-  let verificationToken = null
   try {
-    verificationToken = await issueVerification(user)
+    await issueVerification(user)
   } catch (err) {
     console.error(`[MAILER ERROR] Failed to send verification email to ${email}:`, err)
   }
@@ -102,9 +108,7 @@ router.post('/register', registerLimiter, async (req, res) => {
   res.status(201).json({
     message: 'Account created. Check your email to verify your address.',
     verificationRequired: true,
-    email: user.email,
-    verificationToken,
-    telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || 'lamif_verify_bot'
+    email: user.email
   })
 })
 
@@ -129,12 +133,11 @@ router.post('/verify-email', verifyLimiter, async (req, res) => {
 
 router.post('/resend-verification', resendLimiter, async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase()
-  let verificationToken = null
   if (email) {
     const user = await User.findOne({ email })
     if (user && !user.emailVerified) {
       try {
-        verificationToken = await issueVerification(user)
+        await issueVerification(user)
       } catch (err) {
         console.error(`[MAILER ERROR] Failed to send verification email to ${email}:`, err)
       }
@@ -142,62 +145,20 @@ router.post('/resend-verification', resendLimiter, async (req, res) => {
   }
 
   res.status(200).json({
-    message: 'If the account exists and is unverified, a verification email has been sent.',
-    verificationToken,
-    telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || 'lamif_verify_bot'
+    message: 'If the account exists and is unverified, a verification email has been sent.'
   })
 })
 
 router.get('/verification-status', async (req, res) => {
   const email = String(req.query.email || '').trim().toLowerCase()
-  const token = String(req.query.token || '').trim()
-
-  if (!email && !token) {
+  if (!email) {
     return res.status(400).json({ verified: false })
   }
-
-  let user = null
-  if (email) {
-    user = await User.findOne({ email })
-  } else if (token) {
-    user = await User.findOne({ verificationTokenHash: hashToken(token) })
-  }
-
-  if (!user) {
-    return res.status(200).json({ verified: false })
-  }
-
-  res.status(200).json({
-    verified: !!user.emailVerified,
-    method: user.verificationMethod || (user.emailVerified ? 'email' : null)
-  })
+  const user = await User.findOne({ email }).select('emailVerified')
+  res.status(200).json({ verified: !!user?.emailVerified })
 })
 
-router.get('/telegram-link', async (req, res) => {
-  const email = String(req.query.email || '').trim().toLowerCase()
-  if (!email) throw httpError(400, 'Email is required')
-
-  const user = await User.findOne({ email })
-  if (!user) throw httpError(404, 'User not found')
-  if (user.emailVerified) {
-    return res.status(200).json({ verified: true })
-  }
-
-  // Issue a fresh token if missing or expired
-  let token = null
-  if (!user.verificationTokenHash || !user.verificationExpires || user.verificationExpires <= new Date()) {
-    token = await issueVerification(user)
-  }
-
-  const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'lamif_verify_bot'
-  res.status(200).json({
-    verified: false,
-    botUsername,
-    token
-  })
-})
-
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   const email = String(req.body.email || '').trim()
   const password = String(req.body.password || '')
 
@@ -270,6 +231,9 @@ router.post('/google', googleLimiter, async (req, res) => {
       if (process.env.GOOGLE_CLIENT_ID && data.aud !== process.env.GOOGLE_CLIENT_ID) {
         throw httpError(401, 'Google Client ID mismatch')
       }
+      if (String(data.email_verified) !== 'true') {
+        throw httpError(401, 'Your Google email address is not verified')
+      }
       googleUser = {
         sub: data.sub,
         email: data.email,
@@ -284,6 +248,15 @@ router.post('/google', googleLimiter, async (req, res) => {
   } else if (accessToken) {
     // 3. Verify Google Access Token via Google userinfo endpoint
     try {
+      // The token must have been issued to our own app, otherwise a token from any other site could be replayed here
+      if (process.env.GOOGLE_CLIENT_ID) {
+        const infoRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accessToken)}`)
+        if (!infoRes.ok) throw new Error('Google token verification failed')
+        const info = await infoRes.json()
+        if (info.aud !== process.env.GOOGLE_CLIENT_ID && info.azp !== process.env.GOOGLE_CLIENT_ID) {
+          throw httpError(401, 'Google Client ID mismatch')
+        }
+      }
       const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${accessToken}` }
       })
@@ -291,6 +264,9 @@ router.post('/google', googleLimiter, async (req, res) => {
         throw new Error('Google userinfo request failed')
       }
       const data = await gRes.json()
+      if (data.email_verified !== true && data.email_verified !== 'true') {
+        throw httpError(401, 'Your Google email address is not verified')
+      }
       googleUser = {
         sub: data.sub,
         email: data.email,

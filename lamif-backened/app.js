@@ -33,6 +33,12 @@ app.use((req, res, next) => {
 app.use(cors(corsOptions))
 app.options(/.*/, cors(corsOptions))
 
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'DENY')
+  res.setHeader('Referrer-Policy', 'no-referrer')
+  next()
+})
 app.use(express.json())
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
@@ -41,36 +47,7 @@ app.get('/', (req, res) => {
 })
 
 app.get('/api/health', (req, res) => {
-  if (req.query.debug !== undefined) {
-    return res.status(200).json({
-      status: 'ok',
-      env: {
-        NODE_ENV: process.env.NODE_ENV || '(not set)',
-        SMTP_HOST: process.env.SMTP_HOST ? '✅ set' : '❌ missing',
-        SMTP_PORT: process.env.SMTP_PORT || '(not set)',
-        SMTP_SECURE: process.env.SMTP_SECURE || '(not set)',
-        SMTP_USER: process.env.SMTP_USER ? '✅ set' : '❌ missing',
-        SMTP_PASS: process.env.SMTP_PASS ? '✅ set' : '❌ missing',
-        MAIL_FROM: process.env.MAIL_FROM || '(not set)',
-        CLIENT_URL: process.env.CLIENT_URL || '(not set)',
-        TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN ? '✅ set' : '❌ missing',
-        TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME || 'lamif_verify_bot',
-        MONGO_URI: process.env.MONGO_URI ? '✅ set' : '❌ missing',
-        JWT_SECRET: process.env.JWT_SECRET ? '✅ set' : '❌ missing'
-      }
-    })
-  }
   res.status(200).json({ status: 'ok' })
-})
-
-app.post('/api/telegram/webhook', async (req, res) => {
-  try {
-    const { handleTelegramUpdate } = require('./lib/telegramBot')
-    await handleTelegramUpdate(req.body)
-  } catch (err) {
-    console.error('[TELEGRAM WEBHOOK ERROR]', err.message || err)
-  }
-  res.status(200).send('OK')
 })
 
 app.use('/api/auth', authRoutes)

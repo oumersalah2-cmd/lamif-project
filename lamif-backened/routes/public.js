@@ -13,7 +13,7 @@ const shortName = name => {
 
 // Live numbers and recent praise for the marketing homepage
 router.get('/highlights', async (req, res) => {
-  const visibleTutors = { verificationStatus: { $ne: 'rejected' } }
+  const visibleTutors = { verificationStatus: 'approved' }
   const [tutors, students, sessionsCompleted, ratingRows, subjectRows, reviews] = await Promise.all([
     Tutor.countDocuments(visibleTutors),
     User.countDocuments({ role: 'student' }),

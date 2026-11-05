@@ -329,7 +329,6 @@ export default function GeodesicGlobe3D({
 
     // Mouse Parallax & Smooth Rotation
     let targetRotX = 0.15
-    let targetRotY = 0
     let isDragging = false
     let prevMouseX = 0
     let prevMouseY = 0
@@ -345,9 +344,7 @@ export default function GeodesicGlobe3D({
         globeGroup.rotation.x += deltaY * 0.01
       } else {
         const rect = domElement.getBoundingClientRect()
-        const normX = ((e.clientX - rect.left) / rect.width) * 2 - 1
         const normY = -(((e.clientY - rect.top) / rect.height) * 2 - 1)
-        targetRotY = normX * 0.35
         targetRotX = 0.15 + normY * 0.25
       }
     }

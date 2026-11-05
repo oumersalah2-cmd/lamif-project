@@ -159,32 +159,18 @@ describe('auth and email verification', () => {
     assert.match(sentMail.text, /https:\/\/www\.httpslamif-platfor\.me\/verify-email\?token=/)
   })
 
-  it('verifies a user via Telegram update and updates status', async () => {
-    const email = 'telegram-verify@example.com'
-    const reg = await call('POST', '/auth/register', null, { name: 'Telegram User', email, password: 'password123', role: 'student' })
+  it('does not leak verification tokens in register or resend responses', async () => {
+    const email = 'no-leak@example.com'
+    const reg = await call('POST', '/auth/register', null, { name: 'No Leak', email, password: 'password123', role: 'student' })
     assert.equal(reg.status, 201)
-    const token = reg.data.verificationToken
-    assert.ok(token)
+    assert.equal(reg.data.verificationToken, undefined)
 
-    const { handleTelegramUpdate } = require('../lib/telegramBot')
-    await handleTelegramUpdate({
-      message: {
-        chat: { id: 123456789 },
-        from: { username: 'telegram_user' },
-        text: `/start ${token}`
-      }
-    })
+    const resend = await call('POST', '/auth/resend-verification', null, { email })
+    assert.equal(resend.status, 200)
+    assert.equal(resend.data.verificationToken, undefined)
 
     const status = await call('GET', `/auth/verification-status?email=${encodeURIComponent(email)}`)
-    assert.equal(status.status, 200)
-    assert.equal(status.data.verified, true)
-    assert.equal(status.data.method, 'telegram')
-
-    const user = await User.findOne({ email })
-    assert.equal(user.emailVerified, true)
-    assert.equal(user.verificationMethod, 'telegram')
-    assert.equal(user.telegramChatId, '123456789')
-    assert.equal(user.telegramUsername, 'telegram_user')
+    assert.equal(status.data.verified, false)
   })
 
   it('rejects expired verification links', async () => {
@@ -595,7 +581,7 @@ describe('public highlights', () => {
   it('returns live counts, subjects and only positive reviews', async () => {
     const res = await call('GET', '/public/highlights')
     assert.equal(res.status, 200)
-    assert.ok(res.data.tutors >= 4)
+    assert.ok(res.data.tutors >= 3) // approved tutors only
     assert.ok(res.data.subjects.some(s => s.name === 'Mathematics' && s.tutors === 2))
     assert.ok(res.data.reviews.length > 0 && res.data.reviews.every(r => r.rating >= 4 && r.comment))
   })
@@ -768,12 +754,14 @@ describe('tutor application and admin review system', () => {
     hana.phoneNumber = '0911223344'
     await hana.save()
 
+    // The ID file name can only come from a real upload, never from the request body
+    await TutorModel.updateOne({ _id: applicantTutor._id }, { idDocumentFile: 'test-id.png' })
+
     // Test duplicate ID number rejection
     const duplicateIdSubmit = await call('PUT', '/tutor/profile', applicantToken, {
       action: 'submit',
       phoneNumber: '0988776655',
       idNumber: 'ET-DUPLICATE-ID',
-      idDocumentFile: 'test-id.png',
       bio: 'Certified tutor with deep subject knowledge.',
       education: 'BA Economics, AAU',
       subjects: ['Economics'],
@@ -787,7 +775,6 @@ describe('tutor application and admin review system', () => {
       action: 'submit',
       phoneNumber: '0911223344',
       idNumber: 'ET-UNIQUE-ID-123',
-      idDocumentFile: 'test-id.png',
       bio: 'Certified tutor with deep subject knowledge.',
       education: 'BA Economics, AAU',
       subjects: ['Economics'],
@@ -808,12 +795,19 @@ describe('tutor application and admin review system', () => {
     const mockFilename = 'idDocument-test-private.png'
     fs.writeFileSync(path.join(privateDir, mockFilename), 'fake-image-bytes')
 
+    // A file name smuggled in the request body must be ignored (it could point at someone else's private document)
+    const forged = await call('PUT', '/tutor/profile', applicantToken, { action: 'draft', idDocumentFile: 'someone-elses-id.png' })
+    assert.equal(forged.status, 200)
+    assert.notEqual((await TutorModel.findById(applicantTutor._id)).idDocumentFile, 'someone-elses-id.png')
+
+    // Stands in for a real multipart upload
+    await TutorModel.updateOne({ _id: applicantTutor._id }, { idDocumentFile: mockFilename })
+
     // Submit valid application
     const submitRes = await call('PUT', '/tutor/profile', applicantToken, {
       action: 'submit',
       phoneNumber: '0977665544',
       idNumber: 'ET-UNIQUE-9988',
-      idDocumentFile: mockFilename,
       headline: 'Economics & Statistics Tutor',
       bio: 'Experienced educator preparing high school and university students.',
       education: 'BSc in Economics, Addis Ababa University',

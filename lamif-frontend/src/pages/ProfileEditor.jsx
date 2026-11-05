@@ -5,7 +5,6 @@ import Icon from '../components/Icon'
 import api, { API_URL, apiUrl, errorMessage, fileUrl } from '../lib/api'
 import { getUser } from '../lib/session'
 import { DAYS, formatDate, statusLabel } from '../lib/format'
-import { useLanguage } from '../lib/LanguageContext'
 
 const EMPTY_FORM = {
   headline: '',
@@ -30,7 +29,6 @@ const EMPTY_FORM = {
 
 function ProfileEditor() {
   const navigate = useNavigate()
-  const { t } = useLanguage()
   const user = getUser()
   const [form, setForm] = useState(EMPTY_FORM)
   const [existing, setExisting] = useState(null)

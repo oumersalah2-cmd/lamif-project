@@ -17,9 +17,12 @@ async function connectDatabase() {
   }
 
   if (process.env.MONGO_URI) {
-    if (!process.env.JWT_SECRET) {
-      process.env.JWT_SECRET = 'lamif-dev-secret'
-      console.warn('WARNING: JWT_SECRET is not set; falling back to default development secret.')
+    // A real database must never run with a missing or well-known signing secret,
+    // even when NODE_ENV was forgotten (anyone could forge admin tokens)
+    const secret = process.env.JWT_SECRET
+    if (!secret || secret === 'lamif-dev-secret' || secret === 'your_jwt_secret_key_here' || secret.length < 16) {
+      console.error('FATAL: JWT_SECRET must be set to a random string of at least 16 characters when MONGO_URI is used.')
+      process.exit(1)
     }
     await mongoose.connect(process.env.MONGO_URI)
     console.log('Connected to MongoDB!')
@@ -40,12 +43,6 @@ connectDatabase()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
-      try {
-        const { startTelegramBot } = require('./lib/telegramBot')
-        startTelegramBot().catch(err => console.error('[TELEGRAM BOT START ERROR]', err))
-      } catch (err) {
-        console.warn('[TELEGRAM BOT INIT WARN]', err.message)
-      }
     })
   })
   .catch((err) => {

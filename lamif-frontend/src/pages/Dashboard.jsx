@@ -5,7 +5,7 @@ import ReviewModal from '../components/ReviewModal'
 import TutorBadges from '../components/TutorBadges'
 import api from '../lib/api'
 import { getUser } from '../lib/session'
-import { firstName, formatMoney } from '../lib/format'
+import { firstName, formatMoney, statusLabel } from '../lib/format'
 import { useLanguage } from '../lib/LanguageContext'
 
 const OPEN = ['requested', 'pending']

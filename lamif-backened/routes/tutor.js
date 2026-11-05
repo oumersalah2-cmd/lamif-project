@@ -35,6 +35,15 @@ const parseList = value => {
   return trimmed.split(',').map(s => s.trim()).filter(Boolean)
 }
 
+const parseAvailability = value => {
+  if (typeof value !== 'string') return value
+  try {
+    return JSON.parse(value)
+  } catch {
+    throw httpError(400, 'Availability is not valid')
+  }
+}
+
 const parseNumber = value => (value === undefined || value === '' || value === null ? undefined : Number(value))
 
 const parseBoolean = value => (value === undefined ? undefined : value === true || value === 'true')
@@ -83,9 +92,11 @@ function parseCertificates(body, files, existingCertificates = []) {
 
   const uploadedCertFiles = files?.certificateFiles || []
   let uploadIndex = 0
+  // Never trust a file name from the request body: it could point at someone else's private document
+  const ownFiles = new Set(existingCertificates.map(c => c.file).filter(Boolean))
 
   return certList.map((cert, index) => {
-    let file = cert.file || existingCertificates[index]?.file || ''
+    let file = ownFiles.has(cert.file) ? cert.file : (existingCertificates[index]?.file || '')
     // If a new file was uploaded at this slot
     if (uploadedCertFiles[uploadIndex]) {
       file = uploadedCertFiles[uploadIndex].filename
@@ -118,14 +129,13 @@ function profileFieldsFromRequest(body, files, existingTutor = null) {
     hourlyRateInPerson: parseNumber(body.hourlyRateInPerson),
     maxActiveStudents: parseNumber(body.maxActiveStudents),
     isAvailable: parseBoolean(body.isAvailable),
-    availability: typeof body.availability === 'string' ? JSON.parse(body.availability) : body.availability
+    availability: parseAvailability(body.availability)
   }
 
   if (body.certificates !== undefined || files?.certificateFiles) {
     fields.certificates = parseCertificates(body, files, existingTutor?.certificates || [])
   }
 
-  if (body.idDocumentFile) fields.idDocumentFile = body.idDocumentFile
   if (files?.cv) fields.cvUrl = `/uploads/${files.cv[0].filename}`
   if (files?.profilePicture) fields.profilePictureUrl = `/uploads/${files.profilePicture[0].filename}`
   if (files?.idDocument) fields.idDocumentFile = files.idDocument[0].filename
@@ -213,6 +223,11 @@ router.post('/profile', protect, requireRole('tutor'), profileUploads, async (re
 router.put('/profile', protect, requireRole('tutor'), profileUploads, async (req, res) => {
   const tutor = await Tutor.findOne({ user: req.user.id })
   if (!tutor) throw httpError(404, 'Create your tutor profile first')
+
+  // A rejected application stays locked until the cooldown ends and the tutor reopens it via /reapply
+  if (tutor.verificationStatus === 'rejected') {
+    throw httpError(400, 'Your application was not approved. Use reapply once the review cooldown has ended.')
+  }
 
   const isSubmit = req.body.action === 'submit' || req.body.isDraft === 'false' || req.body.isDraft === false
   const isDraft = req.body.action === 'draft' || req.body.isDraft === 'true' || req.body.isDraft === true

@@ -45,11 +45,10 @@ function Register() {
     setLoading(true)
     setMessage('')
     try {
-      const res = await api.post('/auth/register', formData)
-      const token = res.data.verificationToken || ''
+      await api.post('/auth/register', formData)
       const email = formData.email.trim()
       setRegistered(true)
-      navigate(`/verify-email?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}&registered=true`)
+      navigate(`/verify-email?email=${encodeURIComponent(email)}&registered=true`)
     } catch (error) {
       setMessage(errorMessage(error, 'Connection failed.'))
       setLoading(false)
