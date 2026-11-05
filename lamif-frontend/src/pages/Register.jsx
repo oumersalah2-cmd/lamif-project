@@ -64,7 +64,7 @@ function Register() {
       </p>
 
       <form onSubmit={handleSubmit}>
-        <div className="row" style={{ flexWrap: 'nowrap', marginBottom: '20px' }} role="radiogroup" aria-label="Account type">
+        <div className="role-group" role="radiogroup" aria-label="Account type">
           {roles.map(option => (
             <button
               key={option.role}

@@ -11,10 +11,13 @@
     <script>
       (function() {
         try {
-          if (localStorage.getItem('lamif_theme') === 'dark') {
+          var t = localStorage.getItem('lamif_theme') || localStorage.getItem('theme');
+          if (t === 'dark') {
             document.documentElement.classList.add('dark-mode');
+            if (document.body) document.body.classList.add('dark-mode');
           } else {
             document.documentElement.classList.remove('dark-mode');
+            if (document.body) document.body.classList.remove('dark-mode');
           }
         } catch (e) {}
       })();

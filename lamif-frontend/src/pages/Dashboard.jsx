@@ -121,7 +121,7 @@ function Dashboard() {
       {user && user.emailVerified === false && (
         <div className="glass-card card" style={{ background: 'rgba(234, 179, 8, 0.12)', border: '1px solid #eab308', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <strong style={{ display: 'block', color: 'var(--text)' }}>{t('dash.verifyNoticeTitle')}</strong>
+            <strong style={{ display: 'block', color: 'var(--text-main)' }}>{t('dash.verifyNoticeTitle')}</strong>
             <span className="muted small">{t('dash.verifyNoticeDesc')}</span>
           </div>
           <Link to={`/verify-email?email=${encodeURIComponent(user.email || '')}`} className="btn-primary btn-sm">

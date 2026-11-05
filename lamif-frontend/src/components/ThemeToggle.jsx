@@ -1,18 +1,36 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Icon from './Icon'
 
 function ThemeToggle() {
-  const [isDark, setIsDark] = useState(() => document.body.classList.contains('dark-mode'))
+  const [isDark, setIsDark] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lamif_theme') || localStorage.getItem('theme')
+      if (saved) return saved === 'dark'
+      return (
+        document.documentElement.classList.contains('dark-mode') ||
+        document.body.classList.contains('dark-mode')
+      )
+    } catch {
+      return false
+    }
+  })
+
+  // Synchronize both html and body elements
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark-mode', isDark)
+    document.body.classList.toggle('dark-mode', isDark)
+  }, [isDark])
 
   const toggleTheme = () => {
     const next = !isDark
     setIsDark(next)
+    document.documentElement.classList.toggle('dark-mode', next)
     document.body.classList.toggle('dark-mode', next)
     try {
       localStorage.setItem('lamif_theme', next ? 'dark' : 'light')
       localStorage.setItem('theme', next ? 'dark' : 'light')
     } catch {
-      // Private mode
+      // Private browsing
     }
   }
 
