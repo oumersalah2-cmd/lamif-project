@@ -37,8 +37,36 @@ export const statusLabel = status =>
 const MODE_LABELS = { online: 'Online', in_person: 'In person', either: 'Online or in person' }
 export const modeLabel = mode => MODE_LABELS[mode] || mode
 
-export const LEVELS = ['primary', 'secondary', 'preparatory', 'university', 'professional', 'other']
-export const levelLabel = level => level.charAt(0).toUpperCase() + level.slice(1)
+export const LEVELS = [
+  'kg',
+  'primary_lower',
+  'primary_upper',
+  'primary',
+  'secondary',
+  'preparatory',
+  'test_prep',
+  'tech_skills',
+  'university',
+  'professional',
+  'other'
+]
+
+const LEVEL_LABELS = {
+  kg: 'KG 1–3 (Kindergarten)',
+  primary_lower: 'Lower Primary (Grade 1–4)',
+  primary_upper: 'Upper Primary (Grade 5–8)',
+  primary: 'Primary (Grade 1–8)',
+  secondary: 'Secondary (Grade 9–10)',
+  preparatory: 'Preparatory & Matric (Grade 11–12)',
+  test_prep: 'IELTS, SAT & Scholarships',
+  tech_skills: 'Computer Basics & Programming',
+  university: 'University / College',
+  professional: 'Professional Certifications',
+  other: 'Other'
+}
+
+export const levelLabel = level =>
+  LEVEL_LABELS[level] || (level ? level.charAt(0).toUpperCase() + level.slice(1) : '')
 
 export const AVAILABILITY_LABELS = {
   available_now: 'Available now',

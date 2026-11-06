@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import TutorCard from '../components/TutorCard'
 import HireModal from '../components/HireModal'
+import { ALL_CURRICULUM_SUBJECTS } from '../lib/curriculum'
 import api from '../lib/api'
 import { getUser } from '../lib/session'
 import useSavedTutors from '../lib/useSavedTutors'
@@ -30,7 +31,12 @@ function BrowseTutors() {
   const query = params.toString()
 
   useEffect(() => {
-    api.get('/tutor/subjects').then(res => setSubjects(res.data.subjects)).catch(() => {})
+    api.get('/tutor/subjects')
+      .then(res => {
+        const set = new Set([...(res.data?.subjects || []), ...ALL_CURRICULUM_SUBJECTS])
+        setSubjects(Array.from(set).sort((a, b) => a.localeCompare(b)))
+      })
+      .catch(() => setSubjects(ALL_CURRICULUM_SUBJECTS))
   }, [])
 
   useEffect(() => {

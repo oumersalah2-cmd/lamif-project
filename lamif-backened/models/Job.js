@@ -25,7 +25,19 @@ const jobSchema = new mongoose.Schema({
   },
   level: {
     type: String,
-    enum: ['primary', 'secondary', 'preparatory', 'university', 'professional', 'other'],
+    enum: [
+      'kg',
+      'primary',
+      'primary_lower',
+      'primary_upper',
+      'secondary',
+      'preparatory',
+      'university',
+      'test_prep',
+      'tech_skills',
+      'professional',
+      'other'
+    ],
     default: 'other'
   },
   mode: {

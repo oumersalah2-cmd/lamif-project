@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import api, { errorMessage, isUnverifiedError } from '../lib/api'
 import { getUser } from '../lib/session'
 import { LEVELS, levelLabel } from '../lib/format'
+import { ALL_CURRICULUM_SUBJECTS } from '../lib/curriculum'
 
 function PostJob() {
   const navigate = useNavigate()
@@ -48,7 +49,17 @@ function PostJob() {
         <div className="form-grid">
           <div className="field">
             <label htmlFor="j-subject">Subject</label>
-            <input id="j-subject" placeholder="Chemistry" value={form.subject} onChange={e => update('subject', e.target.value)} required />
+            <input
+              id="j-subject"
+              list="subject-suggestions"
+              placeholder="e.g. Mathematics, IELTS, SAT, Computer Basics, Python"
+              value={form.subject}
+              onChange={e => update('subject', e.target.value)}
+              required
+            />
+            <datalist id="subject-suggestions">
+              {ALL_CURRICULUM_SUBJECTS.map(s => <option key={s} value={s} />)}
+            </datalist>
           </div>
           <div className="field">
             <label htmlFor="j-level">Level</label>

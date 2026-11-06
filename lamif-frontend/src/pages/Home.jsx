@@ -13,21 +13,29 @@ import api from '../lib/api'
 import { getUser } from '../lib/session'
 import { formatMoney, startingRate } from '../lib/format'
 import { useLanguage } from '../lib/LanguageContext'
+import { CURRICULUM_LEVELS, SPOTLIGHT_SUBJECTS } from '../lib/curriculum'
 
-const POPULAR_EN = ['Mathematics', 'Physics', 'English', 'IELTS', 'Programming', 'Chemistry']
-const POPULAR_AM = ['ሂሳብ', 'ፊዚክስ', 'እንግሊዝኛ', 'IELTS', 'ፕሮግራሚንግ', 'ኬሚስትሪ']
+const POPULAR_EN = ['KG 1–3', 'Grade 12 ESSLCE', 'Mathematics', 'Physics', 'English', 'Amharic', 'Afaan Oromoo', 'Arabic', 'IELTS', 'SAT', 'Scholarships', 'Computer Basics', 'Programming']
+const POPULAR_AM = ['ኬጂ (KG 1–3)', 'የ12ኛ ክፍል ፈተና', 'ሂሳብ', 'ፊዚክስ', 'እንግሊዝኛ', 'አማርኛ', 'አፋን ኦሮሞ', 'አረብኛ', 'IELTS', 'SAT', 'ስኮላርሺፕ', 'የኮምፒውተር አጠቃቀም', 'ፕሮግራሚንግ']
+const POPULAR_OM = ['KG 1–3', 'Qormaata Kutaa 12', 'Herrega', 'Fiiziksii', 'Ingiliffa', 'Amaariffa', 'Afaan Oromoo', 'Arabaa', 'IELTS', 'SAT', 'Iskoolaarshippii', 'Fayyadama Kompiitaraa', 'Piroogiraamingii']
 
-const FALLBACK_SUBJECTS = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Programming'].map(name => ({ name }))
+const FALLBACK_SUBJECTS = SPOTLIGHT_SUBJECTS
 
 // Icon and accent colour for a subject tile, matched on the subject name
 const SUBJECT_STYLES = [
-  [/math|calculus|statistic|algebra|ሂሳብ/i, 'sigma', '#10b981'],
-  [/physic|ፊዚክስ/i, 'atom', '#3b82f6'],
-  [/chem|ኬሚስትሪ/i, 'flask', '#8b5cf6'],
-  [/bio|ባዮሎጂ/i, 'leaf', '#22c55e'],
-  [/english|ielts|toefl|amharic|oromo|language|french|arabic|እንግሊዝኛ|አማርኛ/i, 'languages', '#f59e0b'],
-  [/program|computer|code|web|python|software|ፕሮግራሚንግ/i, 'code', '#06b6d4'],
-  [/exam|entrance|matric|ፈተና/i, 'trophy', '#ef4444']
+  [/math|calculus|statistic|algebra|ሂሳብ|herrega/i, 'sigma', '#10b981'],
+  [/physic|ፊዚክስ|fiiziksii/i, 'atom', '#3b82f6'],
+  [/chem|ኬሚስትሪ|keemistirii/i, 'flask', '#8b5cf6'],
+  [/bio|ባዮሎጂ|baayoloojii/i, 'leaf', '#22c55e'],
+  [/arabic|arabaa|አረብኛ|العربية/i, 'languages', '#ec4899'],
+  [/amharic|አማርኛ|amaariffa/i, 'languages', '#f59e0b'],
+  [/oromo|oromic|afaan/i, 'languages', '#10b981'],
+  [/english|ingiliffa|እንግሊዝኛ/i, 'languages', '#6366f1'],
+  [/ielts|toefl|sat|scholarship|admissions|ስኮላርሺፕ|iskoolaarshippii/i, 'trophy', '#f59e0b'],
+  [/computer|program|code|web|python|software|tech|ዲጂታል|ኮምፒውተር|piroogiraam/i, 'code', '#06b6d4'],
+  [/kg|kindergarten|preschool|childhood|ቀደምት|da\'imman/i, 'sparkles', '#f43f5e'],
+  [/exam|entrance|matric|esslce|ፈተና|qormaata/i, 'trophy', '#ef4444'],
+  [/history|geography|social|civics|ዜግነት|ታሪክ|seenaa/i, 'globe', '#84cc16']
 ]
 const subjectStyle = name => {
   const match = SUBJECT_STYLES.find(([pattern]) => pattern.test(name))
@@ -59,9 +67,9 @@ function Home() {
     searchFor(search.trim())
   }
 
-  const subjects = highlights?.subjects.length ? highlights.subjects.slice(0, 8) : FALLBACK_SUBJECTS
+  const subjects = highlights?.subjects?.length ? highlights.subjects.slice(0, 16) : FALLBACK_SUBJECTS
 
-  const popularList = lang === 'am' ? POPULAR_AM : POPULAR_EN
+  const popularList = lang === 'am' ? POPULAR_AM : (lang === 'om' ? POPULAR_OM : POPULAR_EN)
 
   const stats = highlights && [
     [highlights.tutors, t('stats.tutors')],
@@ -70,13 +78,12 @@ function Home() {
     [highlights.subjects.length, t('stats.subjects')]
   ]
 
-  const levels = [
-    { num: 'G1–8', title: t('level.primary.title'), text: t('level.primary.desc') },
-    { num: 'G9–10', title: t('level.secondary.title'), text: t('level.secondary.desc') },
-    { num: 'G11–12', title: t('level.prep.title'), text: t('level.prep.desc'), highlight: true },
-    { num: 'Uni', title: t('level.uni.title'), text: t('level.uni.desc') },
-    { num: 'Pro', title: t('level.pro.title'), text: t('level.pro.desc') }
-  ]
+  const levels = CURRICULUM_LEVELS.map(lvl => ({
+    num: lvl.num,
+    title: t(lvl.titleKey) || lvl.defaultTitle,
+    text: t(lvl.descKey) || lvl.defaultDesc,
+    highlight: lvl.highlight
+  }))
 
   const steps = {
     student: [

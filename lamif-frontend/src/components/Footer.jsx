@@ -6,7 +6,14 @@ import LanguageToggle from './LanguageToggle'
 import { useLanguage } from '../lib/LanguageContext'
 import api from '../lib/api'
 
-const DEFAULT_SUBJECTS = ['Mathematics', 'Physics', 'Chemistry', 'English']
+const DEFAULT_SUBJECTS = [
+  'Mathematics (KG–12)',
+  'Physics & Chemistry',
+  'Grade 12 ESSLCE',
+  'IELTS & SAT Prep',
+  'Computer Basics & Coding',
+  'Amharic, Oromo & Arabic'
+]
 
 export default function Footer({ subjects: initialSubjects }) {
   const { t } = useLanguage()
@@ -17,7 +24,7 @@ export default function Footer({ subjects: initialSubjects }) {
     api.get('/public/highlights')
       .then(res => {
         if (res.data?.subjects?.length) {
-          setSubjects(res.data.subjects.slice(0, 4).map(s => s.name || s))
+          setSubjects(res.data.subjects.slice(0, 6).map(s => s.name || s))
         } else {
           setSubjects(DEFAULT_SUBJECTS)
         }

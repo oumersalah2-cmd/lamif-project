@@ -6,6 +6,29 @@ import api, { API_URL, apiUrl, errorMessage, fileUrl } from '../lib/api'
 import { getUser } from '../lib/session'
 import { DAYS, formatDate, statusLabel } from '../lib/format'
 
+const QUICK_SUBJECTS = [
+  'Mathematics (KG–12)',
+  'Physics (Grade 9–12)',
+  'Chemistry (Grade 9–12)',
+  'Biology (Grade 9–12)',
+  'General Science (Grade 1–8)',
+  'Grade 12 ESSLCE Prep',
+  'KG 1–3 Early Childhood',
+  'English Language',
+  'Amharic (አማርኛ)',
+  'Afaan Oromoo',
+  'Arabic (العربية)',
+  'IELTS Preparation',
+  'SAT & Digital SAT',
+  'Scholarship Application Process',
+  'Computer Basics (How to Use a Computer)',
+  'Computer Programming & Coding',
+  'Python Programming',
+  'Web Development'
+]
+
+const QUICK_LANGUAGES = ['Amharic', 'Afaan Oromo', 'English', 'Arabic', 'Tigrinya', 'French']
+
 const EMPTY_FORM = {
   headline: '',
   bio: '',
@@ -73,6 +96,22 @@ function ProfileEditor() {
   }, [])
 
   const update = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
+
+  const addSubject = sub => {
+    const current = (form.subjects || '').split(',').map(s => s.trim()).filter(Boolean)
+    const exists = current.some(s => s.toLowerCase() === sub.toLowerCase())
+    if (!exists) {
+      update('subjects', [...current, sub].join(', '))
+    }
+  }
+
+  const addLanguage = lang => {
+    const current = (form.languages || '').split(',').map(s => s.trim()).filter(Boolean)
+    const exists = current.some(s => s.toLowerCase() === lang.toLowerCase())
+    if (!exists) {
+      update('languages', [...current, lang].join(', '))
+    }
+  }
 
   const toggleMode = mode => {
     const modes = form.teachingModes.includes(mode)
@@ -527,11 +566,28 @@ function ProfileEditor() {
               <label htmlFor="p-subj">Subjects Offered * (comma-separated)</label>
               <input
                 id="p-subj"
-                placeholder="e.g. Mathematics, Physics, Chemistry"
+                placeholder="e.g. Mathematics, Physics, Chemistry, IELTS, SAT, Python"
                 value={form.subjects}
                 onChange={e => update('subjects', e.target.value)}
                 required={currentStatus !== 'draft'}
               />
+              <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                <span className="muted small" style={{ width: '100%' }}>Click to add popular curriculum subjects:</span>
+                {QUICK_SUBJECTS.map(s => {
+                  const active = (form.subjects || '').split(',').map(x => x.trim().toLowerCase()).includes(s.toLowerCase())
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      className={`chip ${active ? 'selected' : ''}`}
+                      style={{ fontSize: '0.78rem', padding: '3px 8px' }}
+                      onClick={() => addSubject(s)}
+                    >
+                      {active ? '✓ ' : '+ '} {s}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
             <div className="field">
               <label htmlFor="p-exp">Years of Tutoring Experience</label>
@@ -576,10 +632,27 @@ function ProfileEditor() {
             <label htmlFor="p-lang">Languages Spoken (comma-separated)</label>
             <input
               id="p-lang"
-              placeholder="e.g. Amharic, English, Afaan Oromo, Tigrinya"
+              placeholder="e.g. Amharic, English, Afaan Oromo, Arabic"
               value={form.languages}
               onChange={e => update('languages', e.target.value)}
             />
+            <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              <span className="muted small" style={{ width: '100%' }}>Click to add languages:</span>
+              {QUICK_LANGUAGES.map(l => {
+                const active = (form.languages || '').split(',').map(x => x.trim().toLowerCase()).includes(l.toLowerCase())
+                return (
+                  <button
+                    key={l}
+                    type="button"
+                    className={`chip ${active ? 'selected' : ''}`}
+                    style={{ fontSize: '0.78rem', padding: '3px 8px' }}
+                    onClick={() => addLanguage(l)}
+                  >
+                    {active ? '✓ ' : '+ '} {l}
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </div>
 
