@@ -11,6 +11,12 @@ const { issueVerification, hashToken } = require('../lib/emailVerification')
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+const getAdminEmails = () => {
+  const envList = process.env.ADMIN_EMAILS || 'oumersalah@gmail.com,oumersalah2@gmail.com'
+  return envList.split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+}
+const isDesignatedAdmin = (email) => getAdminEmails().includes(String(email || '').trim().toLowerCase())
+
 // Rate limiters for auth endpoints
 // 'trust proxy' is set in app.js, so req.ip is the real client IP (X-Forwarded-For can't be spoofed past the proxy)
 // Azure's proxy may append :port to the address, so strip it
@@ -83,31 +89,34 @@ router.post('/register', registerLimiter, async (req, res) => {
   if (!name || !String(name).trim()) throw httpError(400, 'Name is required')
   if (!EMAIL_PATTERN.test(email)) throw httpError(400, 'Enter a valid email address')
   if (!password || String(password).length < 6) throw httpError(400, 'Password must be at least 6 characters')
-  // Admins are created with scripts/makeAdmin.js, never through sign-up
-  if (!['student', 'tutor'].includes(role)) throw httpError(400, 'Choose student or tutor')
+  // Admins are created with scripts/makeAdmin.js or designated in ADMIN_EMAILS, never arbitrarily chosen through sign-up
+  if (!isDesignatedAdmin(email) && !['student', 'tutor'].includes(role)) throw httpError(400, 'Choose student or tutor')
 
   const existingUser = await User.findOne({ email })
   if (existingUser) throw httpError(400, 'User already exists')
 
   const hashedPassword = await bcrypt.hash(String(password), 10)
+  const isAutoAdmin = isDesignatedAdmin(email)
 
   const user = await User.create({
     name: String(name).trim(),
     email,
     password: hashedPassword,
-    role,
-    emailVerified: false
+    role: isAutoAdmin ? 'admin' : (['student', 'tutor'].includes(role) ? role : 'student'),
+    emailVerified: isAutoAdmin ? true : false
   })
 
-  try {
-    await issueVerification(user)
-  } catch (err) {
-    console.error(`[MAILER ERROR] Failed to send verification email to ${email}:`, err)
+  if (!isAutoAdmin) {
+    try {
+      await issueVerification(user)
+    } catch (err) {
+      console.error(`[MAILER ERROR] Failed to send verification email to ${email}:`, err)
+    }
   }
 
   res.status(201).json({
-    message: 'Account created. Check your email to verify your address.',
-    verificationRequired: true,
+    message: isAutoAdmin ? 'Admin account created.' : 'Account created. Check your email to verify your address.',
+    verificationRequired: !isAutoAdmin,
     email: user.email
   })
 })
@@ -167,6 +176,16 @@ router.post('/login', loginLimiter, async (req, res) => {
   if (!user || !(await bcrypt.compare(password, user.password))) {
     throw httpError(400, 'Invalid credentials')
   }
+
+  // Automatically promote designated admin accounts and ensure email is verified
+  if (isDesignatedAdmin(user.email)) {
+    if (user.role !== 'admin' || !user.emailVerified) {
+      user.role = 'admin'
+      user.emailVerified = true
+      await user.save()
+    }
+  }
+
   if (!user.emailVerified) {
     return res.status(403).json({
       message: 'Please verify your email before logging in',
@@ -290,9 +309,15 @@ router.post('/google', googleLimiter, async (req, res) => {
   }
 
   let user = await User.findOne({ $or: [{ googleId: googleUser.sub }, { email: cleanEmail }] })
+  const isAutoAdmin = isDesignatedAdmin(cleanEmail)
 
   if (user) {
     let dirty = false
+    if (isAutoAdmin && (user.role !== 'admin' || !user.emailVerified)) {
+      user.role = 'admin'
+      user.emailVerified = true
+      dirty = true
+    }
     if (!user.googleId) {
       user.googleId = googleUser.sub
       dirty = true
@@ -310,7 +335,7 @@ router.post('/google', googleLimiter, async (req, res) => {
       await user.save()
     }
   } else {
-    const chosenRole = ['student', 'tutor'].includes(role) ? role : 'student'
+    const chosenRole = isAutoAdmin ? 'admin' : (['student', 'tutor'].includes(role) ? role : 'student')
     const randomPassword = crypto.randomBytes(32).toString('hex')
     const hashedPassword = await bcrypt.hash(randomPassword, 10)
 
