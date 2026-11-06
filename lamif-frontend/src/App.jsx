@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Register from './pages/Register'
@@ -19,10 +20,13 @@ import SavedTutors from './pages/SavedTutors'
 import Admin from './pages/Admin'
 
 function AppLayout() {
+  const location = useLocation()
+  const hideFooter = location.pathname.startsWith('/messages') || location.pathname.startsWith('/admin')
   return (
     <>
       <Navbar />
       <Outlet />
+      {!hideFooter && <Footer />}
     </>
   )
 }

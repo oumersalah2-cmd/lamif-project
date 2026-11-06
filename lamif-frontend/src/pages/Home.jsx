@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import Avatar from '../components/Avatar'
 import Icon from '../components/Icon'
 import TutorBadges from '../components/TutorBadges'
@@ -378,39 +379,7 @@ function Home() {
         </div>
       </section>
 
-      <footer className="site-footer">
-        <div className="footer-grid">
-          <div>
-            <Logo />
-            <p className="muted" style={{ maxWidth: '320px', marginTop: '14px', lineHeight: 1.5 }}>
-              {t('footer.mission')}
-            </p>
-            <div style={{ marginTop: '16px' }}>
-              <LanguageToggle />
-            </div>
-          </div>
-          <div>
-            <h4>{t('footer.forStudents')}</h4>
-            <Link to="/browse-tutors">{t('footer.findTutor')}</Link>
-            <Link to="/register" state={{ role: 'student' }}>{t('footer.postJob')}</Link>
-            <Link to="/browse-tutors?verified=true">{t('footer.verifiedTutors')}</Link>
-          </div>
-          <div>
-            <h4>{t('footer.forTutors')}</h4>
-            <Link to="/register" state={{ role: 'tutor' }}>{t('footer.becomeTutor')}</Link>
-            <Link to="/jobs">{t('footer.tutoringJobs')}</Link>
-            <Link to="/login">{t('footer.tutorLogin')}</Link>
-          </div>
-          <div>
-            <h4>{t('footer.subjects')}</h4>
-            {subjects.slice(0, 4).map(s => <Link key={s.name} to={`/browse-tutors?subject=${encodeURIComponent(s.name)}`}>{s.name}</Link>)}
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} {t('footer.copyright')}</span>
-          <span>{t('footer.madeFor')}</span>
-        </div>
-      </footer>
+      <Footer subjects={subjects.map(s => s.name)} />
     </div>
   )
 }
