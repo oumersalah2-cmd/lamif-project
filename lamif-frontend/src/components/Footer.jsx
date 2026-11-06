@@ -35,8 +35,17 @@ export default function Footer({ subjects: initialSubjects }) {
           <p className="muted" style={{ maxWidth: '320px', marginTop: '14px', lineHeight: 1.5 }}>
             {t('footer.mission')}
           </p>
-          <div style={{ marginTop: '16px' }}>
+          <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <LanguageToggle />
+            <a
+              href="https://t.me/LamifTutors"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer-tg-pill"
+              title="Official Telegram Channel: https://t.me/LamifTutors"
+            >
+              <Icon name="telegram" size={15} /> <span>{t('footer.joinTelegram')}</span>
+            </a>
           </div>
         </div>
 
@@ -66,6 +75,14 @@ export default function Footer({ subjects: initialSubjects }) {
         <div>
           <h4>{t('footer.contact')}</h4>
           <div className="footer-contacts">
+            <a
+              href="https://t.me/LamifTutors"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer-contact-link footer-contact-tg"
+            >
+              <Icon name="telegram" size={15} /> <span>t.me/LamifTutors</span>
+            </a>
             <a href="tel:+251916139859" className="footer-contact-link">
               <Icon name="phone" size={15} /> <span>0916 139 859</span>
             </a>
@@ -89,3 +106,4 @@ export default function Footer({ subjects: initialSubjects }) {
     </footer>
   )
 }
+

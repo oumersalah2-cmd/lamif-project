@@ -365,6 +365,15 @@ function Home() {
                 {t('tutorCta.becomeBtn')} <Icon name="arrowRight" size={18} />
               </button>
               <button className="btn-secondary btn-lg" onClick={() => navigate('/jobs')}>{t('tutorCta.browseJobs')}</button>
+              <a
+                href="https://t.me/LamifTutors"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary btn-lg"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#229ed9', borderColor: 'rgba(34, 158, 217, 0.4)' }}
+              >
+                <Icon name="telegram" size={18} /> <span>Telegram @LamifTutors</span>
+              </a>
             </div>
           </div>
           <div className="cta-perks">

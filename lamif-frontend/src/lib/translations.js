@@ -141,6 +141,8 @@ export const translations = {
     'footer.subjects': 'Featured Subjects',
     'footer.contact': 'Contact & Support',
     'footer.callDirect': 'Direct Assistance & Telegram',
+    'footer.telegram': 'Telegram Channel',
+    'footer.joinTelegram': 'Join @LamifTutors',
     'footer.copyright': 'LAMIF Educational Platform. All rights reserved.',
     'footer.madeFor': 'Empowering learners and educators across Ethiopia 🇪🇹',
 
@@ -382,6 +384,8 @@ export const translations = {
     'footer.subjects': 'ተፈላጊ ትምህርቶች',
     'footer.contact': 'አድራሻና ድጋፍ',
     'footer.callDirect': 'የቀጥታ ስልክና ቴሌግራም',
+    'footer.telegram': 'ይፋዊ ቴሌግራም',
+    'footer.joinTelegram': 'ቴሌግራም ይቀላቀሉ',
     'footer.copyright': 'የላሚፍ (LAMIF) የትምህርት መድረክ። መብቱ በህግ የተጠበቀ ነው።',
     'footer.madeFor': 'ለኢትዮጵያውያን ተማሪዎችና መምህራን በፍቅር የተሰራ 🇪🇹',
 
@@ -623,6 +627,8 @@ export const translations = {
     'footer.subjects': 'Gosoota Barnootaa Beekamoo',
     'footer.contact': 'Qunnamtii fi Deeggarsa',
     'footer.callDirect': 'Bilbila Qajeeltoo fi Telegram',
+    'footer.telegram': 'Chaanaalii Telegram',
+    'footer.joinTelegram': 'Telegram Makamaa',
     'footer.copyright': 'Wurshaa Barnootaa LAMIF. Mirgi qopheessaa seeraan eegamaadha.',
     'footer.madeFor': 'Barattoota fi barsiisota Itoophiyaa guutuu jajjabeessuuf kan hojjetame 🇪🇹',
 
