@@ -127,4 +127,78 @@ router.put('/tutors/:id/verification', async (req, res) => {
   res.json({ message: 'Verification updated successfully', tutor })
 })
 
+// List all student / family tutoring requests
+router.get('/requests', async (req, res) => {
+  const filter = (req.query.status && req.query.status !== 'all') ? { status: req.query.status } : {}
+  const requests = await Job.find(filter)
+    .sort({ createdAt: -1 })
+    .populate('student', 'name email')
+    .populate({
+      path: 'assignedTutor',
+      select: 'headline bio subjects phoneNumber education profilePictureUrl verificationStatus user',
+      populate: { path: 'user', select: 'name email' }
+    })
+  res.json({ requests })
+})
+
+// Assign a teacher to a request based on skill / subject match
+router.put('/requests/:id/assign', async (req, res) => {
+  const { tutorId, adminNotes, status } = req.body
+  const job = await Job.findById(req.params.id).populate('student', 'name email')
+  if (!job) throw httpError(404, 'Tutoring request not found')
+
+  let tutor = null
+  if (tutorId) {
+    tutor = await Tutor.findById(tutorId).populate('user', 'name email')
+    if (!tutor) throw httpError(404, 'Tutor not found')
+    job.assignedTutor = tutor._id
+    job.status = status || 'assigned'
+  } else {
+    job.assignedTutor = null
+    job.status = status || 'under_review'
+  }
+
+  if (adminNotes !== undefined) job.adminNotes = adminNotes
+  await job.save()
+
+  // Notify student & teacher
+  if (tutor) {
+    await notify(
+      job.student._id,
+      'tutor_assigned',
+      `LAMIF has assigned educator ${tutor.user.name} to your request "${job.title}".`,
+      `/jobs/${job._id}`
+    )
+    await notify(
+      tutor.user._id,
+      'job_assigned',
+      `You have been assigned to student request: "${job.title}" (${job.subject}).`,
+      `/jobs/${job._id}`
+    )
+  }
+
+  const updatedJob = await Job.findById(job._id)
+    .populate('student', 'name email')
+    .populate({
+      path: 'assignedTutor',
+      select: 'headline bio subjects phoneNumber education profilePictureUrl verificationStatus user',
+      populate: { path: 'user', select: 'name email' }
+    })
+
+  res.json({ message: 'Request assignment updated successfully', job: updatedJob })
+})
+
+// Update status of a student request directly
+router.put('/requests/:id/status', async (req, res) => {
+  const { status, adminNotes } = req.body
+  const job = await Job.findById(req.params.id)
+  if (!job) throw httpError(404, 'Tutoring request not found')
+
+  if (status) job.status = status
+  if (adminNotes !== undefined) job.adminNotes = adminNotes
+  await job.save()
+
+  res.json({ message: 'Status updated', job })
+})
+
 module.exports = router

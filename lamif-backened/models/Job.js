@@ -58,9 +58,38 @@ const jobSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  phoneNumber: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  studentName: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  preferredSchedule: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  preferredGender: {
+    type: String,
+    enum: ['any', 'male', 'female'],
+    default: 'any'
+  },
+  assignedTutor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tutor',
+    default: null
+  },
+  adminNotes: {
+    type: String,
+    default: ''
+  },
   status: {
     type: String,
-    enum: ['open', 'hired', 'closed'],
+    enum: ['under_review', 'open', 'matching', 'assigned', 'hired', 'closed', 'cancelled'],
     default: 'open'
   },
   createdAt: {

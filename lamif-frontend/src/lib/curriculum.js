@@ -171,3 +171,4 @@ export const SPOTLIGHT_SUBJECTS = [
   { name: 'KG 1–3 Early Childhood Foundation' },
   { name: 'General Science (Grade 1–8)' }
 ]
+

@@ -5,7 +5,7 @@ import ReviewModal from '../components/ReviewModal'
 import TutorBadges from '../components/TutorBadges'
 import api from '../lib/api'
 import { getUser } from '../lib/session'
-import { firstName, formatMoney, statusLabel } from '../lib/format'
+import { firstName, formatMoney, statusLabel, levelLabel, modeLabel } from '../lib/format'
 import { useLanguage } from '../lib/LanguageContext'
 
 const OPEN = ['requested', 'pending']
@@ -41,6 +41,7 @@ function Dashboard() {
   const navigate = useNavigate()
   const { t } = useLanguage()
   const [bookings, setBookings] = useState([])
+  const [myRequests, setMyRequests] = useState([])
   const [profile, setProfile] = useState(null)
   const [needsProfile, setNeedsProfile] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -50,12 +51,21 @@ function Dashboard() {
   const load = useCallback(async () => {
     try {
       if (user.role === 'tutor') {
-        const [bookingRes, profileRes] = await Promise.all([api.get('/booking/tutor-bookings'), api.get('/tutor/me')])
+        const [bookingRes, profileRes, assignedRes] = await Promise.all([
+          api.get('/booking/tutor-bookings'),
+          api.get('/tutor/me'),
+          api.get('/jobs/assigned-to-me').catch(() => ({ data: { jobs: [] } }))
+        ])
         setBookings(bookingRes.data.bookings)
         setProfile(profileRes.data.tutor)
+        setMyRequests(assignedRes.data.jobs || [])
       } else {
-        const res = await api.get('/booking/my-bookings')
-        setBookings(res.data.bookings)
+        const [bookingRes, requestRes] = await Promise.all([
+          api.get('/booking/my-bookings'),
+          api.get('/jobs/mine').catch(() => ({ data: { jobs: [] } }))
+        ])
+        setBookings(bookingRes.data.bookings)
+        setMyRequests(requestRes.data.jobs || [])
       }
     } catch (err) {
       if (err.response?.status === 404) setNeedsProfile(true)
@@ -174,6 +184,76 @@ function Dashboard() {
           <StatTile value={countFor(b => OPEN.includes(b.status))} label={t('dash.awaitingTutor')} />
           <StatTile value={countFor(b => DONE.includes(b.status))} label={t('dash.sessionsCompleted')} />
           <StatTile value={formatMoney(sum(bookings.filter(b => [...DONE, 'paid', 'in_progress'].includes(b.status))))} label={t('dash.totalSpent')} />
+        </div>
+      )}
+
+      {/* Student Tutoring Requests Section */}
+      {user.role === 'student' && myRequests.length > 0 && (
+        <div style={{ marginBottom: '32px' }}>
+          <div className="row-between" style={{ alignItems: 'center', marginBottom: '12px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.25rem' }}>My Tutoring Requests</h3>
+            <Link to="/jobs/new" className="btn-secondary btn-sm">+ Request Another Tutor</Link>
+          </div>
+          <div className="stack" style={{ gap: '10px' }}>
+            {myRequests.map(req => (
+              <div key={req._id} className="glass-card card" style={{ padding: '16px 20px' }}>
+                <div className="row-between" style={{ alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <div className="row" style={{ alignItems: 'center', gap: '10px' }}>
+                      <strong style={{ fontSize: '1.05rem' }}>{req.title}</strong>
+                      <span className={`status-badge status-${req.status}`}>{statusLabel(req.status)}</span>
+                    </div>
+                    <div className="muted small" style={{ marginTop: '4px' }}>
+                      Subject: <strong>{req.subject}</strong> · Grade: <strong>{levelLabel(req.level)}</strong> · Format: {modeLabel(req.mode)} {req.location ? `· ${req.location}` : ''}
+                    </div>
+                    {req.assignedTutor && (
+                      <div className="success-text small" style={{ marginTop: '6px', fontWeight: 600 }}>
+                        ✓ Assigned Educator: {req.assignedTutor.user?.name}
+                      </div>
+                    )}
+                  </div>
+                  <Link to={`/jobs/${req._id}`} className="btn-primary btn-sm">
+                    View Status
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tutor Assigned Requests Section */}
+      {user.role === 'tutor' && myRequests.length > 0 && (
+        <div style={{ marginBottom: '32px' }}>
+          <div className="row-between" style={{ alignItems: 'center', marginBottom: '12px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Assigned Student Inquiries</h3>
+            <span className="small muted">Tutoring requests matched to you by LAMIF</span>
+          </div>
+          <div className="stack" style={{ gap: '10px' }}>
+            {myRequests.map(req => (
+              <div key={req._id} className="glass-card card" style={{ padding: '16px 20px', borderLeft: '4px solid #10b981' }}>
+                <div className="row-between" style={{ alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <div className="row" style={{ alignItems: 'center', gap: '10px' }}>
+                      <strong style={{ fontSize: '1.05rem' }}>{req.title}</strong>
+                      <span className={`status-badge status-${req.status}`}>{statusLabel(req.status)}</span>
+                    </div>
+                    <div className="muted small" style={{ marginTop: '4px' }}>
+                      Student: <strong>{req.studentName || req.student?.name}</strong> · Subject: <strong>{req.subject}</strong> · Format: {modeLabel(req.mode)} {req.location ? `· ${req.location}` : ''}
+                    </div>
+                    {req.preferredSchedule && (
+                      <div className="small muted" style={{ marginTop: '4px' }}>
+                        Schedule: {req.preferredSchedule}
+                      </div>
+                    )}
+                  </div>
+                  <Link to={`/jobs/${req._id}`} className="btn-primary btn-sm">
+                    View Student Request
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

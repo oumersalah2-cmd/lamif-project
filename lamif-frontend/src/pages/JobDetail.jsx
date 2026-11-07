@@ -107,22 +107,109 @@ function JobDetail() {
         <div className="row-between" style={{ alignItems: 'flex-start' }}>
           <div>
             <h1 style={{ margin: '0 0 6px', fontSize: '1.9rem' }}>{job.title}</h1>
-            <p className="muted small" style={{ margin: 0 }}>Posted {timeAgo(job.createdAt)} by {job.student?.name}</p>
+            <p className="muted small" style={{ margin: 0 }}>
+              Posted {timeAgo(job.createdAt)} by {job.student?.name}
+              {job.studentName && <span> (Student: <strong>{job.studentName}</strong>)</span>}
+            </p>
           </div>
           <span className={`status-badge status-${job.status}`}>{statusLabel(job.status)}</span>
         </div>
+
+        {/* Managed Tutoring Status Banners */}
+        {job.status === 'under_review' && (
+          <div
+            className="glass-card card"
+            style={{
+              background: 'rgba(245, 158, 11, 0.09)',
+              border: '1px solid rgba(245, 158, 11, 0.35)',
+              margin: '18px 0',
+              padding: '18px 20px'
+            }}
+          >
+            <div className="row" style={{ alignItems: 'flex-start', gap: '14px' }}>
+              <span style={{ fontSize: '2rem', lineHeight: 1 }}>⏳</span>
+              <div>
+                <h3 style={{ margin: '0 0 6px', color: '#f59e0b', fontSize: '1.15rem' }}>
+                  Request Under Review (በግምገማ ላይ)
+                </h3>
+                <p style={{ margin: '0 0 8px', lineHeight: 1.5 }}>
+                  Our academic coordination team at <strong>LAMIF</strong> has received your request. We are reviewing your student's learning goals, grade level, and location to assign the best verified teacher based on skill and subject expertise.
+                </p>
+                <p className="small muted" style={{ margin: 0 }}>
+                  📞 We will call you at <strong>{job.phoneNumber || 'your registered phone'}</strong> within 24 hours to confirm the educator and schedule.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {job.assignedTutor && (
+          <div
+            className="glass-card card"
+            style={{
+              background: 'rgba(16, 185, 129, 0.09)',
+              border: '1px solid rgba(16, 185, 129, 0.35)',
+              margin: '18px 0',
+              padding: '20px'
+            }}
+          >
+            <div className="row-between" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div className="row" style={{ alignItems: 'center', gap: '16px' }}>
+                <span style={{ fontSize: '2.2rem', lineHeight: 1 }}>🎉</span>
+                <div>
+                  <span className="hero-pill" style={{ display: 'inline-block', marginBottom: '6px', fontSize: '0.78rem' }}>
+                    Teacher Assigned by LAMIF
+                  </span>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '1.25rem', color: '#10b981' }}>
+                    {job.assignedTutor.user?.name}
+                  </h3>
+                  <p className="muted small" style={{ margin: '0 0 6px' }}>
+                    {job.assignedTutor.headline || 'Verified Educator at LAMIF'}
+                  </p>
+                  <div className="row" style={{ gap: '6px' }}>
+                    {(job.assignedTutor.subjects || []).slice(0, 3).map(s => (
+                      <span key={s} className="subject-tag">{s}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="row" style={{ gap: '8px' }}>
+                <Link to={`/tutors/${job.assignedTutor._id}`} className="btn-primary btn-sm">
+                  View Educator Profile
+                </Link>
+                {job.assignedTutor.user?._id && (
+                  <button
+                    className="btn-secondary btn-sm"
+                    onClick={async () => navigate(await conversationPath(job.assignedTutor.user._id))}
+                  >
+                    Message
+                  </button>
+                )}
+              </div>
+            </div>
+            {job.adminNotes && (
+              <p className="small muted" style={{ marginTop: '12px', borderTop: '1px solid var(--border-glass)', paddingTop: '10px' }}>
+                <strong>Coordinator Note:</strong> {job.adminNotes}
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="tutor-meta" style={{ margin: '16px 0' }}>
           <span><strong>{budgetText(job)}</strong></span>
           <span>{modeLabel(job.mode)}</span>
           <span>{levelLabel(job.level)}</span>
           {job.location && <span><Icon name="pin" size={14} />{job.location}</span>}
-          <span>{job.proposalCount} proposal{job.proposalCount === 1 ? '' : 's'}</span>
+          {job.preferredSchedule && <span><Icon name="clock" size={14} />{job.preferredSchedule}</span>}
+          {job.preferredGender && job.preferredGender !== 'any' && (
+            <span>Preferred: {job.preferredGender === 'female' ? 'Female educator' : 'Male educator'}</span>
+          )}
         </div>
         <span className="subject-tag">{job.subject}</span>
-        <p style={{ whiteSpace: 'pre-wrap' }}>{job.description}</p>
-        {isOwner && job.status === 'open' && (
-          <button className="btn-ghost btn-sm btn-danger" onClick={() => window.confirm('Close this job? Pending proposals will be declined.') && act(() => api.put(`/jobs/${job._id}/close`), 'Job closed.')}>
-            Close job
+        <p style={{ whiteSpace: 'pre-wrap', marginTop: '14px', lineHeight: 1.6 }}>{job.description}</p>
+        {isOwner && (job.status === 'open' || job.status === 'under_review') && (
+          <button className="btn-ghost btn-sm btn-danger" onClick={() => window.confirm('Cancel this tutoring request?') && act(() => api.put(`/jobs/${job._id}/close`), 'Request cancelled.')}>
+            Cancel request
           </button>
         )}
       </div>

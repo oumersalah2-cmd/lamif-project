@@ -26,10 +26,17 @@ const STATUS_LABELS = {
   draft: 'Draft',
   submitted: 'Submitted',
   under_review: 'Under Review',
+  matching: 'Matching Teacher',
+  assigned: 'Teacher Assigned',
+  active: 'Active',
+  hired: 'Hired',
   needs_changes: 'Needs Changes',
   approved: 'Approved',
   rejected: 'Rejected',
-  pending: 'Pending Review'
+  pending: 'Pending Review',
+  open: 'Open',
+  closed: 'Closed',
+  cancelled: 'Cancelled'
 }
 export const statusLabel = status =>
   STATUS_LABELS[status] || status.charAt(0).toUpperCase() + status.slice(1)

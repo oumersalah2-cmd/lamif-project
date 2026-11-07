@@ -29,7 +29,22 @@ const withCounts = async jobs => {
 }
 
 router.post('/', protect, requireRole('student'), requireVerified, async (req, res) => {
-  const { title, description, subject, level, mode, budgetMin, budgetMax, location } = req.body
+  const {
+    title,
+    description,
+    subject,
+    level,
+    mode,
+    budgetMin,
+    budgetMax,
+    location,
+    phoneNumber,
+    studentName,
+    preferredSchedule,
+    preferredGender,
+    status
+  } = req.body
+
   const job = await Job.create({
     student: req.user.id,
     title,
@@ -39,7 +54,12 @@ router.post('/', protect, requireRole('student'), requireVerified, async (req, r
     mode,
     budgetMin: optionalNumber(budgetMin),
     budgetMax: optionalNumber(budgetMax),
-    location
+    location: location || '',
+    phoneNumber: phoneNumber || '',
+    studentName: studentName || '',
+    preferredSchedule: preferredSchedule || '',
+    preferredGender: preferredGender || 'any',
+    status: status || 'open'
   })
   res.status(201).json({ message: 'Job posted', job })
 })
@@ -61,13 +81,35 @@ router.get('/', async (req, res) => {
 })
 
 router.get('/mine', protect, requireRole('student'), async (req, res) => {
-  const jobs = await Job.find({ student: req.user.id }).sort({ createdAt: -1 })
+  const jobs = await Job.find({ student: req.user.id })
+    .sort({ createdAt: -1 })
+    .populate({
+      path: 'assignedTutor',
+      select: 'headline bio subjects education profilePictureUrl verificationStatus user',
+      populate: { path: 'user', select: 'name email' }
+    })
   res.json({ jobs: await withCounts(jobs) })
+})
+
+// For teachers: list student requests assigned to this educator by company
+router.get('/assigned-to-me', protect, requireRole('tutor'), async (req, res) => {
+  const tutor = await Tutor.findOne({ user: req.user.id })
+  if (!tutor) return res.json({ jobs: [] })
+  const jobs = await Job.find({ assignedTutor: tutor._id })
+    .sort({ createdAt: -1 })
+    .populate('student', 'name email')
+  res.json({ jobs })
 })
 
 // The owner sees every proposal; a tutor sees only their own
 router.get('/:id', optionalAuth, async (req, res) => {
-  const job = await Job.findById(req.params.id).populate('student', 'name createdAt')
+  const job = await Job.findById(req.params.id)
+    .populate('student', 'name createdAt')
+    .populate({
+      path: 'assignedTutor',
+      select: 'headline bio subjects education profilePictureUrl verificationStatus user',
+      populate: { path: 'user', select: 'name email' }
+    })
   if (!job) throw httpError(404, 'Job not found')
 
   const isOwner = req.user && String(job.student._id) === req.user.id
