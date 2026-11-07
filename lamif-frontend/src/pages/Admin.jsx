@@ -51,9 +51,10 @@ function Admin() {
   const token = localStorage.getItem('token') || ''
 
   const load = useCallback(() => {
+    setError('')
     api.get('/admin/stats').then(res => setStats(res.data)).catch(err => setError(errorMessage(err)))
     api.get(`/admin/tutors${filter ? `?status=${filter}` : ''}`).then(res => setTutors(res.data.tutors)).catch(err => setError(errorMessage(err)))
-    api.get(`/admin/requests${requestFilter ? `?status=${requestFilter}` : ''}`).then(res => setRequests(res.data.requests)).catch(err => setError(errorMessage(err)))
+    api.get(`/admin/requests${requestFilter ? `?status=${requestFilter}` : ''}`).then(res => setRequests(res.data.requests || [])).catch(err => setError(errorMessage(err)))
   }, [filter, requestFilter])
 
   useEffect(() => {
